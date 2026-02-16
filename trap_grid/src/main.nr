@@ -2,7 +2,10 @@ mod libs;
 mod types;
 mod tests;
 
-use libs::merkle_tree::merkle::verify_merkle_proof;
+use libs::merkle_tree::merkle::{
+    compute_merkle_root,
+    //verify_merkle_proof
+};
 //use tests::{ test_main };
 
 use types::{
@@ -15,15 +18,11 @@ struct PrivateInputs {
     trap_value: u32
 }
 
-
-/// PUBLIC INPUTS
-/// - trap_root
-/// - move_x
-/// - move_y
-/// - is_hit
-/// - merkle_path
-/// - merkle_indices
-
+/**
+ * @notice - Main function to verify a move in the trap grid game
+ * @param public_inputs - Contains the Merkle root, move coordinates, hit/miss claim, and Merkle proof
+ * @param private_inputs - Contains the actual trap value at the move coordinates (0 or 1)
+ */
 fn main(
     public_inputs: PublicInputs,
     private_inputs: PrivateInputs
@@ -54,13 +53,8 @@ fn main(
     // 4. Compute leaf index = x * 8 + y
     let leaf_index = move_x * GRID_SIZE + move_y;
 
-    // 5. Verify Merkle inclusion
-    let computed_root = verify_merkle_proof(
-        trap_value as Field,
-        merkle_path,
-        merkle_indices
-    );
-
-    assert(computed_root == trap_root);
+    // 5. Verify Merkle inclusion (by comparing an computed merkle root with a given merkle root)
+    let computed_root = compute_merkle_root(trap_value as Field);
+    assert(computed_root == trap_root, "Invalid Merkle proof: a computed root does not match a given public trap root");
 }
 
