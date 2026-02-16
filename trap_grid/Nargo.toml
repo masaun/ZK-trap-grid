@@ -1,0 +1,6 @@
+[package]
+name = "trap_grid"
+type = "bin"
+authors = [""]
+
+[dependencies]
