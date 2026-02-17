@@ -4,7 +4,7 @@ use crate::{
         merkle_tree::binary_merkle_root_computation::{
             compute_merkle_root,
             //verify_merkle_proof,
-            MERKLE_PROOF_LENGTH, MERKLE_TREE_DEPTH
+            MERKLE_PROOF_LENGTH
         },
         hash::poseidon::poseidon_hash::{
             poseidon_hash_1, 
@@ -19,14 +19,15 @@ use crate::{
 
     types::{
         public_inputs::PublicInputs,
-        constants::{ GRID_SIZE, NUM_CELLS, TREE_DEPTH }
+        constants::{ GRID_SIZE, NUM_CELLS, MERKLE_TREE_DEPTH }
     },
     PrivateInputs
 };
 
 #[test]
 fn test_main() {
-    let trap_merkle_root: Field = 0x013babfa161148501dbebb8f36240518c0bcb8ea332521a92693ecc5d3554f26; // @dev - Placeholder commitment value (1 for trap, 0 for no trap)
+    // @dev - A given Trap Merkle Root, which is stored by a player as a commitment to their trap grid (this is a placeholder value, replace with actual commitment value) 
+    let trap_merkle_root: Field = 0x1f043a4524fc107a4021d837cc83206234f0e79cb59de08dc4e16800627a4329; // @dev - Placeholder commitment value (1 for trap, 0 for no trap)
     println(f"Trap Merkle Root: {trap_merkle_root}");
 
     // ------------ PUBLIC INPUTS ------------- //

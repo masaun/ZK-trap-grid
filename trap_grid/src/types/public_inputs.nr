@@ -1,10 +1,10 @@
 use crate::{
     libs::{
         merkle_tree::binary_merkle_root_computation::{
-            MERKLE_PROOF_LENGTH, MERKLE_TREE_DEPTH
+            MERKLE_PROOF_LENGTH
         }
     },
-    types::constants::{ GRID_SIZE, NUM_CELLS, TREE_DEPTH }
+    types::constants::{ GRID_SIZE, NUM_CELLS, MERKLE_TREE_DEPTH }
 };
 
 /**

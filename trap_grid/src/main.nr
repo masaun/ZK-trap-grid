@@ -6,7 +6,6 @@ use libs::{
     merkle_tree::binary_merkle_root_computation::{
         compute_merkle_root,
         //verify_merkle_proof
-        MERKLE_PROOF_LENGTH, MERKLE_TREE_DEPTH
     },
     hash::poseidon::poseidon_hash::{
         poseidon_hash_1, 
@@ -21,7 +20,7 @@ use libs::{
 
 use types::{
     public_inputs::PublicInputs,
-    constants::{ GRID_SIZE, NUM_CELLS, TREE_DEPTH }
+    constants::{ GRID_SIZE, NUM_CELLS, MERKLE_TREE_DEPTH }
 };
 
 // @dev - Private inputs struct
@@ -43,7 +42,7 @@ fn main(
     let move_x: u32 = public_inputs.move_x;
     let move_y: u32 = public_inputs.move_y;
     let is_hit: u32 = public_inputs.is_hit;
-    let trap_merkle_proof_length: u32 = public_inputs.trap_merkle_proof_length;
+    let trap_merkle_proof_length: u32 = public_inputs.trap_merkle_proof_length;  // @dev - [Key Point]: The MERKLE_PROOF_LENGTH would always be equal to the MERKLE_TREE_DEPTH for a binary Merkle tree, since each level of the tree contributes one sibling node to the proof. Therefore, we can set MERKLE_PROOF_LENGTH to be equal to MERKLE_TREE_DEPTH.
     let trap_merkle_proof_indices: [u1; MERKLE_TREE_DEPTH] = public_inputs.trap_merkle_proof_indices;
     let trap_merkle_proof_siblings: [Field; MERKLE_TREE_DEPTH] = public_inputs.trap_merkle_proof_siblings; // @dev - Placeholder, replace with actual siblings from public inputs
 
@@ -68,7 +67,7 @@ fn main(
     // 5. Verify Merkle inclusion (by comparing an computed merkle root with a given merkle root)
     let computed_trap_merkle_root = compute_merkle_root(
         trap_value as Field,
-        trap_merkle_proof_length,
+        trap_merkle_proof_length,  // @dev - [Key Point]: The MERKLE_PROOF_LENGTH would always be equal to the MERKLE_TREE_DEPTH for a binary Merkle tree, since each level of the tree contributes one sibling node to the proof. Therefore, we can set MERKLE_PROOF_LENGTH to be equal to MERKLE_TREE_DEPTH.
         trap_merkle_proof_indices,
         trap_merkle_proof_siblings
     );

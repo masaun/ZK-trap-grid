@@ -1,20 +1,26 @@
 use binary_merkle_root::binary_merkle_root;
 
-use crate::libs::hash::poseidon::poseidon_hash::{
-    poseidon_hash_1, 
-    poseidon_hash_2, 
-    poseidon_hash_3, 
-    poseidon_hash_4,
-    poseidon_hash_5,
-    poseidon_hash_6
+use crate::{
+    libs::hash::poseidon::poseidon_hash::{
+        poseidon_hash_1, 
+        poseidon_hash_2, 
+        poseidon_hash_3, 
+        poseidon_hash_4,
+        poseidon_hash_5,
+        poseidon_hash_6
+    },
+    types::{
+        constants::{ MERKLE_TREE_DEPTH },
+    }
 };
 //use std::hash::poseidon;
 
 // @dev - The length of the Merkle proof for the commitment merkle proof
-pub global MERKLE_PROOF_LENGTH: u32 = 4;
+// @dev - [Key Point]: The MERKLE_PROOF_LENGTH would always be equal to the MERKLE_TREE_DEPTH for a binary Merkle tree, since each level of the tree contributes one sibling node to the proof. Therefore, we can set MERKLE_PROOF_LENGTH to be equal to MERKLE_TREE_DEPTH.
+pub global MERKLE_PROOF_LENGTH: u32 = MERKLE_TREE_DEPTH;
 
 // @dev - The depth of the Merkle Tree for the commitments
-pub global MERKLE_TREE_DEPTH: u32 = 16;
+//pub global MERKLE_TREE_DEPTH: u32 = 16;
 
 /**
     * @notice - Computes the Binary Merkle Root for a given leaf and a Merkle proof
