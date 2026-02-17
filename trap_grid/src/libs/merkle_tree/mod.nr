@@ -1,1 +1,1 @@
-pub mod merkle;
+pub mod binary_merkle_root_computation;

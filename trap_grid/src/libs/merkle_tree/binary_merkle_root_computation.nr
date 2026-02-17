@@ -23,11 +23,10 @@ pub global MERKLE_TREE_DEPTH: u32 = 16;
     */
 pub fn compute_merkle_root(
     commitment: Field, // @dev - Leaf
+    merkle_proof_length: u32,
+    merkle_proof_indices: [u1; MERKLE_TREE_DEPTH],
+    merkle_proof_siblings: [Field; MERKLE_TREE_DEPTH],
 ) -> Field {
-    let merkle_proof_length: u32 = MERKLE_PROOF_LENGTH;,
-    let merkle_proof_indices: [u1; MERKLE_TREE_DEPTH] = [0; MERKLE_TREE_DEPTH],
-    let merkle_proof_siblings: [Field; MERKLE_TREE_DEPTH] = [0; MERKLE_TREE_DEPTH];
-
     let merkle_root = binary_merkle_root(
         poseidon_hash_2, // @dev - This should be replaced depends on the number of elements of the Merkle proof (e.g., if the tree is binary, use poseidon_hash_2; if ternary, use poseidon_hash_3, etc.)
         commitment,
