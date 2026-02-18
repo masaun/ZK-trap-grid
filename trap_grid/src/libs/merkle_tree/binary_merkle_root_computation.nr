@@ -1,14 +1,7 @@
 use binary_merkle_root::binary_merkle_root;
 
 use crate::{
-    libs::hash::poseidon::poseidon_hash::{
-        poseidon_hash_1, 
-        poseidon_hash_2, 
-        poseidon_hash_3, 
-        poseidon_hash_4,
-        poseidon_hash_5,
-        poseidon_hash_6
-    },
+    libs::hash::poseidon::poseidon_hash::{ poseidon_hash_2 },
     types::{
         constants::{ MERKLE_TREE_DEPTH },
     }
@@ -28,14 +21,14 @@ pub global MERKLE_PROOF_LENGTH: u32 = MERKLE_TREE_DEPTH;
     * @returns The computed Merkle root
     */
 pub fn compute_merkle_root(
-    commitment: Field, // @dev - Leaf
+    leaf: Field, // @dev - A trap "commitment" should be stored into here as a "Leaf", which is for the trap at the move coordinates (0 or 1)
     merkle_proof_length: u32,
     merkle_proof_indices: [u1; MERKLE_TREE_DEPTH],
     merkle_proof_siblings: [Field; MERKLE_TREE_DEPTH],
 ) -> Field {
     let merkle_root = binary_merkle_root(
-        poseidon_hash_2, // @dev - This should be replaced depends on the number of elements of the Merkle proof (e.g., if the tree is binary, use poseidon_hash_2; if ternary, use poseidon_hash_3, etc.)
-        commitment,
+        poseidon_hash_2, // @dev - For a "Binary" Merkle Tree, each leaf node is a hash of 2 children, so we use the 2-input Poseidon hash function.
+        leaf,                    // @dev - A trap "commitment" should be stored into here as a "Leaf", which is for the trap at the move coordinates (0 or 1)
         merkle_proof_length,
         merkle_proof_indices,
         merkle_proof_siblings
