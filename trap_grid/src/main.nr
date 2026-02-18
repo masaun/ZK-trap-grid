@@ -49,16 +49,16 @@ fn main(
     // ------------ PRIVATE INPUTS ------------- //
     let trap_value: u32 = private_inputs.trap_value; // @dev - Secret value of Player A
 
-    // 1. Validate coordinates are within grid
+    // 1. Constraint: Validate coordinates are within grid
     assert(move_x >= 0);
     assert(move_x < GRID_SIZE);
     assert(move_y >= 0);
     assert(move_y < GRID_SIZE);
 
-    // 2. Ensure trap_value is boolean (0 or 1)
+    // 2. Constraint: Ensure trap_value is boolean (0 or 1)
     assert((trap_value == 0) | (trap_value == 1), "Trap value must be 0 or 1");
 
-    // 3. Ensure claimed result matches actual trap value
+    // 3. Constraint: Ensure claimed result matches actual trap value
     assert(trap_value == is_hit, "Claimed hit/miss does not match trap value");  // @dev - "trap_value" is also used used for the trap_merkle_root computation as a "leaf" value at the subsequent line in this circuit. Thereby, this constraint can check whether a given "is_hit" is truly consistent with the actual trap value at the move coordinates, which is a critical constraint to ensure the integrity of the game logic. If this assertion fails, it means that the player is claiming a hit/miss that does not align with the actual trap configuration, which would be a violation of the game's rules.
 
     // 4-1. Compute a moved_position_index = x * 8 + y
@@ -66,17 +66,18 @@ fn main(
 
     // 8x8 Grid
     // --------------------------------
-    // (0,0) -> 0
-    // (0,1) -> 1
+    // (0,0) -> 0 (= 0 * 8 + 0)
+    // (0,1) -> 1 (= 0 * 8 + 1)
     // ...
-    // (1,0) -> 8
+    // (1,0) -> 8 (= 1 * 8 + 0)
     // ...
-    // (7,7) -> 63
+    // (7,7) -> 63 (= 7 * 8 + 7)
     // --------------------------------
     //
-    // moved_position_index = x * 8 + y
+    // (x,y) -> moved_position_index (= x * 8 + y)
     //
-    // NOTE: As you can see above, in case of 8x8 Grid, the range of movement: (0,63)
+    // NOTE: As you can see above, in case of 8x8 Grid, the range of movement: (0,0) to (7,7)
+    //          => Hence, the moved_position_index would be in the range of 0 to 63
 
     // 4-2. Reconstruct a moved_position_index from a given trap merkle proof indices, which is come from a public input.
     let mut reconstructed_moved_position_index: u32 = 0;
@@ -84,7 +85,7 @@ fn main(
         reconstructed_moved_position_index += (trap_merkle_proof_indices[i] as u32) << i;
     }
 
-    // 4-3. Assert that the reconstructed moved_position_index from the proof matches the expected moved_position_index based on the move coordinates. This ensures that the Merkle proof provided is indeed for the correct leaf corresponding to the move being verified.
+    // 4-3. Constraint: Assert that the reconstructed moved_position_index from the proof matches the expected moved_position_index based on the move coordinates. This ensures that the Merkle proof provided is indeed for the correct leaf corresponding to the move being verified.
     assert(reconstructed_moved_position_index == moved_position_index);
 
     // 5-1: Compute a trap commitment by hashing the trap value with the moved position index. This commitment represents the specific trap configuration at the move coordinates and will be used as the leaf value for Merkle proof verification.
@@ -98,6 +99,8 @@ fn main(
         trap_merkle_proof_indices,
         trap_merkle_proof_siblings
     );
+
+    // 5-3. Constraint: Assert that the computed_trap_merkle_root from the provided proof matches a given trap_merkle_root (which is coming from a public input).
     assert(computed_trap_merkle_root == trap_merkle_root, "Invalid Merkle proof: a computed root does not match a given public trap root");
 }
 
