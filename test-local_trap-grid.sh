@@ -77,21 +77,22 @@ node "$BBJS" prove_ultra_keccak_honk \
   -w ./target/trap_grid.gz \
   -o ./target/proof.with_public_inputs
 
-echo "==> 4) Build public_inputs from Prover.toml and prepare proof"
-# Since the circuit uses struct-based parameters, bb.js doesn't properly
-# extract public inputs (they show as "private" in the ABI).
-# We manually construct the public_inputs file from Prover.toml.
-node build_public_inputs.js
+echo "==> 4) Extract public_inputs and proof"
+# Now that public_inputs is properly marked as 'pub', bb.js includes
+# public inputs at the start of proof.with_public_inputs.
+# Calculate the number of public input fields from the ABI.
+PUB_COUNT="$(node count_pub_inputs.js)"
+PUB_BYTES=$((PUB_COUNT * 32))
 
-# Use the full proof.with_public_inputs as the proof
-# (bb.js format for struct-based circuits is opaque)
-cp target/proof.with_public_inputs target/proof
+head -c "$PUB_BYTES" target/proof.with_public_inputs > target/public_inputs
+tail -c +$((PUB_BYTES + 1)) target/proof.with_public_inputs > target/proof
 cp target/vk.keccak target/vk
 
-PUB_BYTES=$(wc -c < target/public_inputs | tr -d ' ')
+echo "    PUB_COUNT=$PUB_COUNT"
+echo "    PUB_BYTES=$PUB_BYTES"
+
 PROOF_BYTES=$(wc -c < target/proof | tr -d ' ')
-echo "    Public inputs: $PUB_BYTES bytes (should be 544)"
-echo "    Proof: $PROOF_BYTES bytes"
+echo "    Proof: $PROOF_BYTES bytes (should be 14592)"
 
 echo "==> Optional sanity check (trap_merkle_root from public_inputs)"
 python3 - <<'PY'
@@ -130,13 +131,48 @@ echo "==> 5b) Setup source account"
 SOURCE_ACCOUNT="${STELLAR_SOURCE_ACCOUNT:-alice}"
 echo "    Using source account: $SOURCE_ACCOUNT"
 
-# Generate keys if they don't exist
-stellar keys generate "$SOURCE_ACCOUNT" 2>/dev/null || true
+# Ensure network is configured
+echo "    Configuring local network..."
+stellar network add local \
+  --rpc-url http://localhost:8000/soroban/rpc \
+  --network-passphrase "Standalone Network ; February 2017" 2>/dev/null || true
 
-# Try to fund the account
-echo "    Funding account..."
-if ! stellar keys fund "$SOURCE_ACCOUNT" --network local 2>/dev/null; then
-    echo "    ⚠️  Warning: Could not fund account (it may already be funded)"
+stellar network use local
+
+# Generate keys if they don't exist
+echo "    Generating keys for $SOURCE_ACCOUNT..."
+if stellar keys generate "$SOURCE_ACCOUNT" 2>&1 | grep -q "already exists"; then
+    echo "    Keys already exist for $SOURCE_ACCOUNT"
+else
+    echo "    ✓ Keys generated for $SOURCE_ACCOUNT"
+fi
+
+# Fund the account using friendbot
+echo "    Funding account $SOURCE_ACCOUNT..."
+FUND_OUTPUT=$(stellar keys fund "$SOURCE_ACCOUNT" --network local 2>&1)
+FUND_EXIT=$?
+
+if [ $FUND_EXIT -eq 0 ]; then
+    echo "    ✓ Account funded successfully"
+elif echo "$FUND_OUTPUT" | grep -q "already exists\|already funded"; then
+    echo "    Account is already funded"
+else
+    echo "    ❌ Failed to fund account"
+    echo "    Error: $FUND_OUTPUT"
+    echo ""
+    echo "Please ensure the local Stellar network is running with friendbot enabled:"
+    echo "  docker run -d -p 8000:8000 stellar/quickstart --local --limits unlimited --enable core,rpc,lab,horizon,friendbot"
+    exit 1
+fi
+
+# Verify account exists
+echo "    Verifying account..."
+ACCOUNT_ADDRESS=$(stellar keys address "$SOURCE_ACCOUNT" 2>&1)
+if [ $? -eq 0 ]; then
+    echo "    ✓ Account ready: $ACCOUNT_ADDRESS"
+else
+    echo "    ❌ Failed to get account address"
+    exit 1
 fi
 
 echo "==> 5c) Build + deploy contract with VK bytes"

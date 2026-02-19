@@ -34,7 +34,7 @@ pub struct PrivateInputs {
  * @param private_inputs - Contains the actual trap value at the move coordinates (0 or 1)
  */
 fn main(
-    public_inputs: PublicInputs,
+    public_inputs: pub PublicInputs,
     private_inputs: PrivateInputs
 ) {
     // ------------ PUBLIC INPUTS ------------- //

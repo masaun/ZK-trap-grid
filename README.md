@@ -1,3 +1,40 @@
+# ZK Trap Grid 
+
+## Run the e2e script
+
+- 1/ Run the docker
+```bash
+docker run -d -p 8000:8000 stellar/quickstart \
+  --local \
+  --limits unlimited \
+  --enable core,rpc,lab,horizon,friendbot
+stellar network add local \
+  --rpc-url http://localhost:8000/soroban/rpc \
+  --network-passphrase "Standalone Network ; February 2017"
+stellar network use local
+stellar keys generate --global alice
+stellar keys fund alice --network local
+```
+(ref: https://jamesbachini.com/noir-on-stellar/?dpl_token=94e608d9-2c24-488f-af74-315ddbb7f0a1 )
+
+<br>
+
+- 1/ Run the `e2e` script on Stellar `local` network
+```bash
+sh test-local_trap-grid.sh
+```
+
+<br>
+
+- 2/ Run the `e2e` script on Stellar `testnet`
+```bash
+sh test-verification_trap_grid.sh
+```
+
+<br>
+
+<hr>
+
 # Noirlang Experiments
 
 Full tutorial here: https://jamesbachini.com/noir-on-stellar/?dpl_token=94e608d9-2c24-488f-af74-315ddbb7f0a1
