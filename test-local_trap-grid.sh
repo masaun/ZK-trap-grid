@@ -26,15 +26,15 @@ set -euo pipefail
 # ============================================================================
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
-LIMIT_ORDERS_DIR="$ROOT/trap_grid"
+TRAP_GRID="$ROOT/trap_grid"
 CONTRACT_DIR="$ROOT/rs-soroban-ultrahonk"
 
 echo "==> 0) Clean artifacts"
-rm -rf "$LIMIT_ORDERS_DIR/target"
+rm -rf "$TRAP_GRID/target"
 rm -rf "$CONTRACT_DIR/target"
 
-echo "==> 1) cd $LIMIT_ORDERS_DIR"
-cd "$LIMIT_ORDERS_DIR"
+echo "==> 1) cd $TRAP_GRID"
+cd "$TRAP_GRID"
 
 echo "==> 2) Build circuit + witness"
 npm i -D @aztec/bb.js@0.87.0 source-map-support
@@ -184,7 +184,7 @@ CID="$(
     --source-account "$SOURCE_ACCOUNT" \
     --network local \
     -- \
-    --vk_bytes-file-path "$LIMIT_ORDERS_DIR/target/vk" \
+    --vk_bytes-file-path "$TRAP_GRID/target/vk" \
   | tail -n1
 )"
 
@@ -198,8 +198,8 @@ stellar contract invoke \
   --send no \
   -- \
   verify_proof \
-  --public_inputs-file-path "$LIMIT_ORDERS_DIR/target/public_inputs" \
-  --proof_bytes-file-path "$LIMIT_ORDERS_DIR/target/proof"
+  --public_inputs-file-path "$TRAP_GRID/target/public_inputs" \
+  --proof_bytes-file-path "$TRAP_GRID/target/proof"
 
 echo "==> 7) Verify proof on-chain (--send yes)"
 stellar contract invoke \
@@ -209,7 +209,7 @@ stellar contract invoke \
   --send yes \
   -- \
   verify_proof \
-  --public_inputs-file-path "$LIMIT_ORDERS_DIR/target/public_inputs" \
-  --proof_bytes-file-path "$LIMIT_ORDERS_DIR/target/proof"
+  --public_inputs-file-path "$TRAP_GRID/target/public_inputs" \
+  --proof_bytes-file-path "$TRAP_GRID/target/proof"
 
 echo "==> Done! On-chain verification succeeded."
