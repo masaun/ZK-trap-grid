@@ -1,6 +1,8 @@
 # Node modules
 **-lock.json
 
+# Environment files
+.env
 
 
 # ==========

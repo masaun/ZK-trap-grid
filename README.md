@@ -1,5 +1,22 @@
 # ZK Trap Grid 
 
+## Preparation for running the e2e script
+
+- Before running the e2e script below, you need to generate an account and then, funding some amount of the native/gas token (`$XLM`) on Stellar Testnet into your account from **Stellar Testnet `Fancet`**: 
+```bash
+# Generate a testnet identity (if you haven't already)
+stellar keys generate your-testnet-identity
+
+# Fund it on testnet
+stellar keys fund your-testnet-identity --network testnet
+
+# Set the environment variable
+export STELLAR_SOURCE_ACCOUNT=your-testnet-identity
+
+```
+
+<br>
+
 ## Run the e2e script
 
 - 1/ Run the docker
