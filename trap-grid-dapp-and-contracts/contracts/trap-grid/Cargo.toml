@@ -1,5 +1,5 @@
 [package]
-name = "mock-game-hub"
+name = "trap-grid"
 version = "0.1.0"
 edition = "2021"
 
