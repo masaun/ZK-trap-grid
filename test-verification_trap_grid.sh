@@ -41,7 +41,11 @@ echo "==> 1) cd $TRAP_GRID"
 cd "$TRAP_GRID"
 
 echo "==> 2) Build circuit + witness"
-npm i -D @aztec/bb.js@0.87.0 source-map-support
+npm i -D @aztec/bb.js@0.87.0 source-map-support typescript @types/node
+
+echo "==> 2a) Compile TypeScript helpers"
+cd scripts && npx tsc && cd ..
+
 nargo compile
 nargo execute
 
@@ -58,7 +62,7 @@ node "$BBJS" prove_ultra_keccak_honk \
   -o ./target/proof.with_public_inputs
 
 echo "==> 4) Split proof into public_inputs + proof bytes"
-PUB_COUNT="$(node count_pub_inputs.js)"
+PUB_COUNT="$(node scripts/helpers/count_pub_inputs.js)"
 PUB_BYTES=$((PUB_COUNT * 32))
 
 head -c "$PUB_BYTES" target/proof.with_public_inputs > target/public_inputs
