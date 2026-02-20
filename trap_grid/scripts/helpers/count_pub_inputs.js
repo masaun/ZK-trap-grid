@@ -1,4 +1,4 @@
-const abi = require('./target/trap_grid.json').abi;
+const abi = require('../../target/trap_grid.json').abi;
 const n = abi.parameters.find(p => p.visibility === 'public');
 if (!n) {
   process.stdout.write('0');

@@ -81,7 +81,7 @@ echo "==> 4) Extract public_inputs and proof"
 # Now that public_inputs is properly marked as 'pub', bb.js includes
 # public inputs at the start of proof.with_public_inputs.
 # Calculate the number of public input fields from the ABI.
-PUB_COUNT="$(node count_pub_inputs.js)"
+PUB_COUNT="$(node scripts/helpers/count_pub_inputs.js)"
 PUB_BYTES=$((PUB_COUNT * 32))
 
 head -c "$PUB_BYTES" target/proof.with_public_inputs > target/public_inputs
@@ -106,27 +106,72 @@ PY
 echo "==> 5) cd $CONTRACT_DIR"
 cd "$CONTRACT_DIR"
 
-echo "==> 5a) Check local Stellar network availability"
-if ! curl -s http://localhost:8000/soroban/rpc -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","id":1,"method":"getHealth"}' | grep -q "healthy"; then
+echo "==> 5a) Check Docker availability"
+if ! docker info > /dev/null 2>&1; then
     echo ""
     echo "════════════════════════════════════════════════════════════"
-    echo "⚠️  STELLAR LOCAL NETWORK NOT AVAILABLE"
+    echo "⚠️  DOCKER NOT RUNNING"
     echo "════════════════════════════════════════════════════════════"
-    echo "The local Stellar network is not running or not ready."
+    echo "Docker is required to run the local Stellar network."
     echo ""
-    echo "To start the local network, run:"
-    echo "  stellar container start -t future --limits unlimited"
-    echo ""
-    echo "Wait a few moments for the network to become healthy, then"
-    echo "run this script again."
+    echo "Please start Docker Desktop first, then run this script again."
     echo ""
     echo "The circuit compilation and proof generation succeeded ✓"
     echo "════════════════════════════════════════════════════════════"
     exit 0
 fi
-echo "    ✓ Local network is healthy"
+echo "    ✓ Docker is running"
 
-echo "==> 5b) Setup source account"
+echo "==> 5b) Check if Stellar container is already running"
+if docker ps | grep -q "stellar/quickstart"; then
+    echo "    ✓ Stellar container already running"
+else
+    echo "    Starting new Stellar container..."
+    docker run -d -p 8000:8000 stellar/quickstart \
+      --local \
+      --limits unlimited \
+      --enable core,rpc,lab,horizon,friendbot > /dev/null 2>&1 || {
+        echo "    ⚠️  Could not start container (port may be in use)"
+        echo "    Checking if network is accessible anyway..."
+    }
+    echo "    Waiting for network to initialize..."
+    sleep 3
+fi
+
+echo "==> 5c) Check local Stellar network availability"
+RETRY_COUNT=0
+MAX_RETRIES=10
+while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+    if curl -s http://localhost:8000/soroban/rpc -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","id":1,"method":"getHealth"}' | grep -q "healthy"; then
+        echo "    ✓ Local network is healthy"
+        break
+    fi
+    RETRY_COUNT=$((RETRY_COUNT + 1))
+    if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+        echo "    Waiting for network to become healthy... ($RETRY_COUNT/$MAX_RETRIES)"
+        sleep 2
+    else
+        echo ""
+        echo "════════════════════════════════════════════════════════════"
+        echo "⚠️  STELLAR LOCAL NETWORK NOT RESPONDING"
+        echo "════════════════════════════════════════════════════════════"
+        echo "The local Stellar network failed to become healthy."
+        echo ""
+        echo "You can manually start it with:"
+        echo "  docker run -d -p 8000:8000 stellar/quickstart \\"
+        echo "    --local --limits unlimited \\"
+        echo "    --enable core,rpc,lab,horizon,friendbot"
+        echo ""
+        echo "Or using stellar CLI:"
+        echo "  stellar container start -t future --limits unlimited"
+        echo ""
+        echo "The circuit compilation and proof generation succeeded ✓"
+        echo "════════════════════════════════════════════════════════════"
+        exit 0
+    fi
+done
+
+echo "==> 5d) Setup source account"
 # Use 'alice' as default source account for local network
 SOURCE_ACCOUNT="${STELLAR_SOURCE_ACCOUNT:-alice}"
 echo "    Using source account: $SOURCE_ACCOUNT"
@@ -175,7 +220,7 @@ else
     exit 1
 fi
 
-echo "==> 5c) Build + deploy contract with VK bytes"
+echo "==> 5e) Build + deploy contract with VK bytes"
 stellar contract build --optimize
 
 CID="$(

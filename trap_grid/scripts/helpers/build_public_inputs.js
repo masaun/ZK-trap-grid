@@ -87,8 +87,8 @@ function fieldToBytes32(value) {
 }
 
 // Main execution
-const proverTomlPath = path.join(__dirname, 'Prover.toml');
-const outputPath = path.join(__dirname, 'target', 'public_inputs');
+const proverTomlPath = path.join(__dirname, '../../Prover.toml');
+const outputPath = path.join(__dirname, '../../target', 'public_inputs');
 
 // Read and parse Prover.toml
 const tomlContent = fs.readFileSync(proverTomlPath, 'utf-8');

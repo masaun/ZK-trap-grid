@@ -58,7 +58,7 @@ node "$BBJS" prove_ultra_keccak_honk \
   -o ./target/proof.with_public_inputs
 
 echo "==> 4) Split proof into public_inputs + proof bytes"
-PUB_COUNT="$(node count_pub_inputs.js)"
+PUB_COUNT="$(node scripts/helpers/count_pub_inputs.js)"
 PUB_BYTES=$((PUB_COUNT * 32))
 
 head -c "$PUB_BYTES" target/proof.with_public_inputs > target/public_inputs
