@@ -26,7 +26,7 @@ set -euo pipefail
 # ============================================================================
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
-TRAP_GRID="$ROOT/trap_grid"
+TRAP_GRID="$ROOT/trap-grid"
 CONTRACT_DIR="$ROOT/rs-soroban-ultrahonk"
 
 echo "==> 0) Clean artifacts"

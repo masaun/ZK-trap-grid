@@ -24,7 +24,7 @@ set -euo pipefail
 # ============================================================================
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
-TRAP_GRID="$ROOT/trap_grid"
+TRAP_GRID="$ROOT/trap-grid"
 CONTRACT_DIR="$ROOT/rs-soroban-ultrahonk"
 
 # Load environment variables from .env file
