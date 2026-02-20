@@ -37,10 +37,14 @@ echo "==> 1) cd $TRAP_GRID"
 cd "$TRAP_GRID"
 
 echo "==> 2) Build circuit + witness"
-npm i -D @aztec/bb.js@0.87.0 source-map-support
+npm i -D @aztec/bb.js@0.87.0 source-map-support typescript @types/node
+
+echo "==> 2a) Compile TypeScript helpers"
+cd scripts && npx tsc && cd ..
+
 nargo compile
 
-echo "==> 2a) Generate witness (requires valid Prover.toml data)"
+echo "==> 2b) Generate witness (requires valid Prover.toml data)"
 nargo execute 2>&1 | grep -v "warning:" || true
 
 # Check if we have a real witness file before proceeding

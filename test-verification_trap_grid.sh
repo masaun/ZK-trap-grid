@@ -41,7 +41,11 @@ echo "==> 1) cd $TRAP_GRID"
 cd "$TRAP_GRID"
 
 echo "==> 2) Build circuit + witness"
-npm i -D @aztec/bb.js@0.87.0 source-map-support
+npm i -D @aztec/bb.js@0.87.0 source-map-support typescript @types/node
+
+echo "==> 2a) Compile TypeScript helpers"
+cd scripts && npx tsc && cd ..
+
 nargo compile
 nargo execute
 
