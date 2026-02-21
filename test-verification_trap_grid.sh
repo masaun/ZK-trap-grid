@@ -109,8 +109,6 @@ CID="$(
   stellar contract deploy \
     --wasm target/wasm32v1-none/release/rs_soroban_ultrahonk.wasm \
     --source-account "$SOURCE_ACCOUNT" \
-    --resource-fee 50000000 \
-    --instruction-leeway 50000000 \
     --network testnet \
     -- \
     --vk_bytes-file-path "$TRAP_GRID/target/vk" \
@@ -137,8 +135,6 @@ stellar contract invoke \
   --id "$CID" \
   --source-account "$SOURCE_ACCOUNT" \
   --network testnet \
-  --resource-fee 50000000 \
-  --instruction-leeway 50000000 \
   --send yes \
   -- \
   verify_proof \
