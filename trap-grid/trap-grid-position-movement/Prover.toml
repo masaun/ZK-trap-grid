@@ -1,0 +1,37 @@
+# Sample test data - replace with actual game data
+# For a valid proof, you need to generate proper Merkle proof data
+# This is placeholder data that will need to be replaced with real values
+
+[public_inputs]
+# Merkle root commitment to the trap grid
+trap_merkle_root = "0x2d72f4f64f6ffcc1c436b0e79d66024d83761172859c83edea8fa927b6c220e7"
+
+# Move coordinates (x, y) - must be in range [0, 7] for 8x8 grid
+move_x = "2"
+move_y = "3"
+
+# Claimed result: 1 for hit, 0 for miss
+is_hit = "0"
+
+# Merkle proof depth (fixed at 6 for 8x8 grid = 64 cells = 2^6)
+trap_merkle_proof_length = "6"
+
+# Merkle proof indices: binary representation of leaf index (0 for this example: 0*8+0=0)
+trap_merkle_proof_indices = ["1", "1", "0", "0", "1", "0"]
+
+# Merkle proof siblings: replace with actual sibling hashes from your Merkle tree
+trap_merkle_proof_siblings = [
+    "0x2d6420fccddd3a66ca877646a0b4ce643e2f9a4b58021f44644b418481a6605b",
+    "0x006ffb06d452f730af0adaa73938805999a76de07c62b81051986373c9682e97",
+    "0x1ac0fbfd352008842bafe50fdc673e52738b931497aea7fbfb7a5b064e95b87e",
+    "0x09bab01445bef38ffdd4c8ac75f21a2c49d6bf4f59ca78753dd4a8649dc03130",
+    "0x15fb8a3d77343ab9c5f82ade8300bfe25d9c1f97c4491bad6a290288c692b0f9",
+    "0x2a7a2c070ceb9d236d9191b10e6f654b502668cd4e0e661b7319f092c77b3a14"
+]
+
+[private_inputs]
+# Actual trap value at (move_x, move_y): 0 for no trap, 1 for trap
+# Must match is_hit for the proof to verify
+trap_value = "0"
+
+

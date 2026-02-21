@@ -1,5 +1,6 @@
 [package]
-name = "trap_grid"
+name = "trap_grid_merkle_root"
+#name = "trap_grid"
 type = "bin"
 authors = ["masaun"]
 

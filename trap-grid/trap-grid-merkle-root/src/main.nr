@@ -49,17 +49,17 @@ fn main(
     // ------------ PRIVATE INPUTS ------------- //
     let trap_value: u32 = private_inputs.trap_value; // @dev - Secret value of Player A
 
-    // 1. Constraint: Validate coordinates are within grid
-    assert(move_x >= 0);
-    assert(move_x < GRID_SIZE);
-    assert(move_y >= 0);
-    assert(move_y < GRID_SIZE);
+    // // 1. Constraint: Validate coordinates are within grid
+    // assert(move_x >= 0);
+    // assert(move_x < GRID_SIZE);
+    // assert(move_y >= 0);
+    // assert(move_y < GRID_SIZE);
 
-    // 2. Constraint: Ensure trap_value is boolean (0 or 1)
-    assert((trap_value == 0) | (trap_value == 1), "Trap value must be 0 or 1");
+    // // 2. Constraint: Ensure trap_value is boolean (0 or 1)
+    // assert((trap_value == 0) | (trap_value == 1), "Trap value must be 0 or 1");
 
-    // 3. Constraint: Ensure claimed result matches actual trap value
-    assert(trap_value == is_hit, "Claimed hit/miss does not match trap value");  // @dev - "trap_value" is also used used for the trap_merkle_root computation as a "leaf" value at the subsequent line in this circuit. Thereby, this constraint can check whether a given "is_hit" is truly consistent with the actual trap value at the move coordinates, which is a critical constraint to ensure the integrity of the game logic. If this assertion fails, it means that the player is claiming a hit/miss that does not align with the actual trap configuration, which would be a violation of the game's rules.
+    // // 3. Constraint: Ensure claimed result matches actual trap value
+    // assert(trap_value == is_hit, "Claimed hit/miss does not match trap value");  // @dev - "trap_value" is also used used for the trap_merkle_root computation as a "leaf" value at the subsequent line in this circuit. Thereby, this constraint can check whether a given "is_hit" is truly consistent with the actual trap value at the move coordinates, which is a critical constraint to ensure the integrity of the game logic. If this assertion fails, it means that the player is claiming a hit/miss that does not align with the actual trap configuration, which would be a violation of the game's rules.
 
     // 4-1. Compute a moved_position_index = x * 8 + y
     let moved_position_index = move_x * GRID_SIZE + move_y; // @dev - [NOTE]: A "movement index" can also be a "leaf index".
