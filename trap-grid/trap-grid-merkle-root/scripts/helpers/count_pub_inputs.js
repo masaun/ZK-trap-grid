@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
-const abiPath = path.join(__dirname, '../../target/trap_grid.json');
+const abiPath = path.join(__dirname, '../../target/trap_grid_merkle_root.json');
 const abiData = JSON.parse(fs.readFileSync(abiPath, 'utf-8'));
 const publicParam = abiData.abi.parameters.find(p => p.visibility === 'public');
 if (!publicParam) {

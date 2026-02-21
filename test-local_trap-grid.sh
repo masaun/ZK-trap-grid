@@ -2,17 +2,15 @@
 set -euo pipefail
 
 # ============================================================================
-# Trap Grid ZK Circuit - Local Test Script
+# Trap Grid ZK Circuits - Local Test Script
 # ============================================================================
-# This script compiles the trap grid ZK circuit, generates proofs, and verifies
+# This script compiles the trap grid ZK circuits, generates proofs, and verifies
 # them on a local Stellar network.
 #
 # PREREQUISITES:
-#   1. Valid test data in trap_grid/Prover.toml with:
-#      - trap_merkle_root: Merkle root commitment of the trap grid
-#      - move coordinates and claim (is_hit)
-#      - Valid Merkle proof (indices + siblings) for the move
-#      - trap_value that matches is_hit
+#   1. Valid test data in each circuit's Prover.toml
+#      - trap-grid-merkle-root: Valid merkle proof data
+#      - trap-grid-position-movement: Valid position and movement data
 #
 #   2. Local Stellar network running (for deployment steps)
 #      Run: stellar container start -t future --limits unlimited
@@ -21,70 +19,75 @@ set -euo pipefail
 #      The account must exist and be funded on the local network
 #      Set STELLAR_SOURCE_ACCOUNT env var to use a different account
 #
-# NOTE: If Prover.toml doesn't have cryptographically valid Merkle proof data,
+# NOTE: If Prover.toml doesn't have cryptographically valid data,
 #       the script will stop after circuit compilation with instructions.
+#
+# CIRCUITS:
+# 1. trap-grid-merkle-root: Verifies the trap grid merkle root
+# 2. trap-grid-position-movement: Verifies position movement and trap detection
 # ============================================================================
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
-TRAP_GRID="$ROOT/trap-grid"
+TRAP_GRID_MERKLE="$ROOT/trap-grid/trap-grid-merkle-root"
+TRAP_GRID_MOVEMENT="$ROOT/trap-grid/trap-grid-position-movement"
 CONTRACT_DIR="$ROOT/rs-soroban-ultrahonk"
 
 echo "==> 0) Clean artifacts"
-rm -rf "$TRAP_GRID/target"
+rm -rf "$TRAP_GRID_MERKLE/target"
+rm -rf "$TRAP_GRID_MOVEMENT/target"
 rm -rf "$CONTRACT_DIR/target"
 
-echo "==> 1) cd $TRAP_GRID"
-cd "$TRAP_GRID"
+# ============================================================================
+# CIRCUIT 1: trap-grid-merkle-root
+# ============================================================================
+echo ""
+echo "════════════════════════════════════════════════════════════"
+echo "CIRCUIT 1: trap-grid-merkle-root"
+echo "════════════════════════════════════════════════════════════"
 
-echo "==> 2) Build circuit + witness"
+echo "==> 1a) cd $TRAP_GRID_MERKLE"
+cd "$TRAP_GRID_MERKLE"
+
+echo "==> 1b) Build circuit + witness"
 npm i -D @aztec/bb.js@0.87.0 source-map-support typescript @types/node
 
-echo "==> 2a) Compile TypeScript helpers"
+echo "==> 1c) Compile TypeScript helpers"
 cd scripts && npx tsc && cd ..
 
 nargo compile
 
-echo "==> 2b) Generate witness (requires valid Prover.toml data)"
+echo "==> 1d) Generate witness (requires valid Prover.toml data)"
 nargo execute 2>&1 | grep -v "warning:" || true
 
 # Check if we have a real witness file before proceeding
-if [ -s target/trap_grid.gz ]; then
-    echo "    ✓ Witness generated successfully"
+if [ -s target/trap_grid_merkle_root.gz ]; then
+    echo "    ✓ Circuit 1 witness generated successfully"
 else
     echo ""
     echo "════════════════════════════════════════════════════════════"
-    echo "⚠️  NO VALID WITNESS FILE AVAILABLE"
+    echo "⚠️  NO VALID WITNESS FILE FOR CIRCUIT 1"
     echo "════════════════════════════════════════════════════════════"
     echo "The witness generation requires valid Merkle proof test data."
     echo ""
-    echo "To proceed with proof generation, you need to:"
-    echo "  1. Generate a valid trap grid Merkle tree"
-    echo "  2. Update Prover.toml with correct test data including:"
-    echo "     - Valid trap_merkle_root"
-    echo "     - Correct merkle_proof_indices"
-    echo "     - Correct merkle_proof_siblings"
-    echo ""
-    echo "Stopping here. Circuit compilation succeeded ✓"
+    echo "To proceed, update Prover.toml with correct test data."
+    echo "Stopping here. Circuit 1 compilation succeeded ✓"
     echo "════════════════════════════════════════════════════════════"
     exit 0
 fi
 
-echo "==> 3) Generate UltraHonk (keccak) VK + proof"
+echo "==> 1e) Generate UltraHonk (keccak) VK + proof"
 BBJS="./node_modules/@aztec/bb.js/dest/node/main.js"
 
 node "$BBJS" write_vk_ultra_keccak_honk \
-  -b ./target/trap_grid.json \
+  -b ./target/trap_grid_merkle_root.json \
   -o ./target/vk.keccak
 
 node "$BBJS" prove_ultra_keccak_honk \
-  -b ./target/trap_grid.json \
-  -w ./target/trap_grid.gz \
+  -b ./target/trap_grid_merkle_root.json \
+  -w ./target/trap_grid_merkle_root.gz \
   -o ./target/proof.with_public_inputs
 
-echo "==> 4) Extract public_inputs and proof"
-# Now that public_inputs is properly marked as 'pub', bb.js includes
-# public inputs at the start of proof.with_public_inputs.
-# Calculate the number of public input fields from the ABI.
+echo "==> 1f) Extract public_inputs and proof"
 PUB_COUNT="$(node scripts/helpers/count_pub_inputs.js)"
 PUB_BYTES=$((PUB_COUNT * 32))
 
@@ -96,21 +99,92 @@ echo "    PUB_COUNT=$PUB_COUNT"
 echo "    PUB_BYTES=$PUB_BYTES"
 
 PROOF_BYTES=$(wc -c < target/proof | tr -d ' ')
-echo "    Proof: $PROOF_BYTES bytes (should be 14592)"
+echo "    Proof: $PROOF_BYTES bytes"
 
-echo "==> Optional sanity check (trap_merkle_root from public_inputs)"
+echo "==> 1g) Optional sanity check (merkle_root from public_inputs)"
 python3 - <<'PY'
 import pathlib
 b = pathlib.Path("target/public_inputs").read_bytes()
 print("  Total length:", len(b), "bytes")
 merkle_root = b[:32]
-print("  First field (trap_merkle_root):", merkle_root.hex())
+print("  First field (merkle_root):", merkle_root.hex())
 PY
 
-echo "==> 5) cd $CONTRACT_DIR"
+# ============================================================================
+# CIRCUIT 2: trap-grid-position-movement
+# ============================================================================
+echo ""
+echo "════════════════════════════════════════════════════════════"
+echo "CIRCUIT 2: trap-grid-position-movement"
+echo "════════════════════════════════════════════════════════════"
+
+echo "==> 2a) cd $TRAP_GRID_MOVEMENT"
+cd "$TRAP_GRID_MOVEMENT"
+
+echo "==> 2b) Build circuit + witness"
+npm i -D @aztec/bb.js@0.87.0 source-map-support typescript @types/node
+
+echo "==> 2c) Compile TypeScript helpers"
+cd scripts && npx tsc && cd ..
+
+nargo compile
+
+echo "==> 2d) Generate witness (requires valid Prover.toml data)"
+nargo execute 2>&1 | grep -v "warning:" || true
+
+# Check if we have a real witness file before proceeding
+if [ -s target/trap_grid_position_movement.gz ]; then
+    echo "    ✓ Circuit 2 witness generated successfully"
+else
+    echo ""
+    echo "════════════════════════════════════════════════════════════"
+    echo "⚠️  NO VALID WITNESS FILE FOR CIRCUIT 2"
+    echo "════════════════════════════════════════════════════════════"
+    echo "The witness generation requires valid position movement data."
+    echo ""
+    echo "To proceed, update Prover.toml with correct test data."
+    echo "Stopping here. Circuit 2 compilation succeeded ✓"
+    echo "════════════════════════════════════════════════════════════"
+    exit 0
+fi
+
+echo "==> 2e) Generate UltraHonk (keccak) VK + proof"
+BBJS="./node_modules/@aztec/bb.js/dest/node/main.js"
+
+node "$BBJS" write_vk_ultra_keccak_honk \
+  -b ./target/trap_grid_position_movement.json \
+  -o ./target/vk.keccak
+
+node "$BBJS" prove_ultra_keccak_honk \
+  -b ./target/trap_grid_position_movement.json \
+  -w ./target/trap_grid_position_movement.gz \
+  -o ./target/proof.with_public_inputs
+
+echo "==> 2f) Extract public_inputs and proof"
+PUB_COUNT="$(node scripts/helpers/count_pub_inputs.js)"
+PUB_BYTES=$((PUB_COUNT * 32))
+
+head -c "$PUB_BYTES" target/proof.with_public_inputs > target/public_inputs
+tail -c +$((PUB_BYTES + 1)) target/proof.with_public_inputs > target/proof
+cp target/vk.keccak target/vk
+
+echo "    PUB_COUNT=$PUB_COUNT"
+echo "    PUB_BYTES=$PUB_BYTES"
+
+PROOF_BYTES=$(wc -c < target/proof | tr -d ' ')
+echo "    Proof: $PROOF_BYTES bytes"
+
+echo "==> 2g) Optional sanity check (public_inputs)"
+python3 - <<'PY'
+import pathlib
+b = pathlib.Path("target/public_inputs").read_bytes()
+print("  Total length:", len(b), "bytes")
+PY
+
+echo "==> 3) cd $CONTRACT_DIR"
 cd "$CONTRACT_DIR"
 
-echo "==> 5a) Check Docker availability"
+echo "==> 3a) Check Docker availability"
 if ! docker info > /dev/null 2>&1; then
     echo ""
     echo "════════════════════════════════════════════════════════════"
@@ -120,13 +194,13 @@ if ! docker info > /dev/null 2>&1; then
     echo ""
     echo "Please start Docker Desktop first, then run this script again."
     echo ""
-    echo "The circuit compilation and proof generation succeeded ✓"
+    echo "Both circuits compiled and generated proofs successfully ✓"
     echo "════════════════════════════════════════════════════════════"
     exit 0
 fi
 echo "    ✓ Docker is running"
 
-echo "==> 5b) Check if Stellar container is already running"
+echo "==> 3b) Check if Stellar container is already running"
 if docker ps | grep -q "stellar/quickstart"; then
     echo "    ✓ Stellar container already running"
 else
@@ -142,7 +216,7 @@ else
     sleep 3
 fi
 
-echo "==> 5c) Check local Stellar network availability"
+echo "==> 3c) Check local Stellar network availability"
 RETRY_COUNT=0
 MAX_RETRIES=10
 while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
@@ -169,13 +243,13 @@ while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
         echo "Or using stellar CLI:"
         echo "  stellar container start -t future --limits unlimited"
         echo ""
-        echo "The circuit compilation and proof generation succeeded ✓"
+        echo "Both circuits compiled and generated proofs successfully ✓"
         echo "════════════════════════════════════════════════════════════"
         exit 0
     fi
 done
 
-echo "==> 5d) Setup source account"
+echo "==> 3d) Setup source account"
 # Use 'alice' as default source account for local network
 SOURCE_ACCOUNT="${STELLAR_SOURCE_ACCOUNT:-alice}"
 echo "    Using source account: $SOURCE_ACCOUNT"
@@ -224,41 +298,102 @@ else
     exit 1
 fi
 
-echo "==> 5e) Build + deploy contract with VK bytes"
+echo "==> 3e) Build contract"
 stellar contract build --optimize
 
-CID="$(
+# ============================================================================
+# DEPLOY AND VERIFY CIRCUIT 1: trap-grid-merkle-root
+# ============================================================================
+echo ""
+echo "════════════════════════════════════════════════════════════"
+echo "DEPLOY CIRCUIT 1: trap-grid-merkle-root"
+echo "════════════════════════════════════════════════════════════"
+
+CID_MERKLE="$(
   stellar contract deploy \
     --wasm target/wasm32v1-none/release/rs_soroban_ultrahonk.wasm \
     --source-account "$SOURCE_ACCOUNT" \
     --network local \
     -- \
-    --vk_bytes-file-path "$TRAP_GRID/target/vk" \
+    --vk_bytes-file-path "$TRAP_GRID_MERKLE/target/vk" \
   | tail -n1
 )"
 
-echo "==> Deployed CID: $CID"
+echo "==> Deployed Merkle Root Contract ID: $CID_MERKLE"
 
-echo "==> 6) Verify proof (simulation, --send no)"
+echo "==> 4a) Verify circuit 1 proof (simulation, --send no)"
 stellar contract invoke \
-  --id "$CID" \
+  --id "$CID_MERKLE" \
   --source-account "$SOURCE_ACCOUNT" \
   --network local \
   --send no \
   -- \
   verify_proof \
-  --public_inputs-file-path "$TRAP_GRID/target/public_inputs" \
-  --proof_bytes-file-path "$TRAP_GRID/target/proof"
+  --public_inputs-file-path "$TRAP_GRID_MERKLE/target/public_inputs" \
+  --proof_bytes-file-path "$TRAP_GRID_MERKLE/target/proof"
 
-echo "==> 7) Verify proof on-chain (--send yes)"
+echo "==> 4b) Verify circuit 1 proof on-chain (--send yes)"
 stellar contract invoke \
-  --id "$CID" \
+  --id "$CID_MERKLE" \
   --source-account "$SOURCE_ACCOUNT" \
   --network local \
   --send yes \
   -- \
   verify_proof \
-  --public_inputs-file-path "$TRAP_GRID/target/public_inputs" \
-  --proof_bytes-file-path "$TRAP_GRID/target/proof"
+  --public_inputs-file-path "$TRAP_GRID_MERKLE/target/public_inputs" \
+  --proof_bytes-file-path "$TRAP_GRID_MERKLE/target/proof"
 
-echo "==> Done! On-chain verification succeeded."
+echo "    ✓ Circuit 1 on-chain verification succeeded!"
+
+# ============================================================================
+# DEPLOY AND VERIFY CIRCUIT 2: trap-grid-position-movement
+# ============================================================================
+echo ""
+echo "════════════════════════════════════════════════════════════"
+echo "DEPLOY CIRCUIT 2: trap-grid-position-movement"
+echo "════════════════════════════════════════════════════════════"
+
+CID_MOVEMENT="$(
+  stellar contract deploy \
+    --wasm target/wasm32v1-none/release/rs_soroban_ultrahonk.wasm \
+    --source-account "$SOURCE_ACCOUNT" \
+    --network local \
+    -- \
+    --vk_bytes-file-path "$TRAP_GRID_MOVEMENT/target/vk" \
+  | tail -n1
+)"
+
+echo "==> Deployed Position Movement Contract ID: $CID_MOVEMENT"
+
+echo "==> 5a) Verify circuit 2 proof (simulation, --send no)"
+stellar contract invoke \
+  --id "$CID_MOVEMENT" \
+  --source-account "$SOURCE_ACCOUNT" \
+  --network local \
+  --send no \
+  -- \
+  verify_proof \
+  --public_inputs-file-path "$TRAP_GRID_MOVEMENT/target/public_inputs" \
+  --proof_bytes-file-path "$TRAP_GRID_MOVEMENT/target/proof"
+
+echo "==> 5b) Verify circuit 2 proof on-chain (--send yes)"
+stellar contract invoke \
+  --id "$CID_MOVEMENT" \
+  --source-account "$SOURCE_ACCOUNT" \
+  --network local \
+  --send yes \
+  -- \
+  verify_proof \
+  --public_inputs-file-path "$TRAP_GRID_MOVEMENT/target/public_inputs" \
+  --proof_bytes-file-path "$TRAP_GRID_MOVEMENT/target/proof"
+
+echo "    ✓ Circuit 2 on-chain verification succeeded!"
+
+echo ""
+echo "════════════════════════════════════════════════════════════"
+echo "✅ ALL VERIFICATIONS COMPLETED SUCCESSFULLY!"
+echo "════════════════════════════════════════════════════════════"
+echo "Both circuits were verified on-chain:"
+echo "  1. Merkle Root: $CID_MERKLE"
+echo "  2. Position Movement: $CID_MOVEMENT"
+echo "════════════════════════════════════════════════════════════"
