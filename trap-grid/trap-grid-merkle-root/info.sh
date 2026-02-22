@@ -1,8 +1,8 @@
 echo "Show the size of the ZK circuit..."
-bb gates -b target/trap_grid.json | grep "circuit"
+bb gates -b target/trap_grid_merkle_root.json | grep "circuit"
 
 # Scheme is: ultra_honk, num threads: 8
-#         "circuit_size": 9365
+#         "circuit_size": 10142
 
 # @aztec/bb.js
 #   - Performance and limitations: 

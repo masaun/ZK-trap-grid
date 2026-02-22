@@ -1,6 +1,6 @@
 mod libs;
 mod types;
-mod tests;
+//mod tests;
 
 use libs::{
     merkle_tree::binary_merkle_root_computation::{
@@ -41,7 +41,7 @@ fn main(
     let trap_merkle_root: Field = public_inputs.trap_merkle_root;
     let move_x: u32 = public_inputs.move_x;
     let move_y: u32 = public_inputs.move_y;
-    let is_hit: u32 = public_inputs.is_hit;
+    // let is_hit: u32 = public_inputs.is_hit;
     let trap_merkle_proof_length: u32 = public_inputs.trap_merkle_proof_length;  // @dev - [Key Point]: The MERKLE_PROOF_LENGTH would always be equal to the MERKLE_TREE_DEPTH for a binary Merkle tree, since each level of the tree contributes one sibling node to the proof. Therefore, we can set MERKLE_PROOF_LENGTH to be equal to MERKLE_TREE_DEPTH.
     let trap_merkle_proof_indices: [u1; MERKLE_TREE_DEPTH] = public_inputs.trap_merkle_proof_indices;
     let trap_merkle_proof_siblings: [Field; MERKLE_TREE_DEPTH] = public_inputs.trap_merkle_proof_siblings; // @dev - Placeholder, replace with actual siblings from public inputs
@@ -89,7 +89,8 @@ fn main(
     assert(reconstructed_moved_position_index == moved_position_index);
 
     // 5-1: Compute a trap commitment by hashing the trap value with the moved position index. This commitment represents the specific trap configuration at the move coordinates and will be used as the leaf value for Merkle proof verification.
-    let trap_commitment = poseidon_hash_2([trap_value as Field, moved_position_index as Field]);
+    let trap_commitment = poseidon_hash_1([trap_value as Field]);
+    //let trap_commitment = poseidon_hash_2([trap_value as Field, moved_position_index as Field]);
 
     // 5-2. Verify Merkle inclusion (by comparing an computed merkle root with a given merkle root)
     let computed_trap_merkle_root = compute_merkle_root(

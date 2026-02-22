@@ -21,7 +21,7 @@ pub struct PublicInputs {
     pub trap_merkle_root: Field, // @dev - Merkle root of the trap grid
     pub move_x: u32,
     pub move_y: u32,
-    pub is_hit: u32,
+    // pub is_hit: u32,
     pub trap_merkle_proof_length: u32,
     pub trap_merkle_proof_indices: [u1; MERKLE_TREE_DEPTH],
     pub trap_merkle_proof_siblings: [Field; MERKLE_TREE_DEPTH]

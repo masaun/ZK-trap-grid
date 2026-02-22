@@ -4,7 +4,7 @@
 
 [public_inputs]
 # Merkle root commitment to the trap grid
-trap_merkle_root = "0x2d72f4f64f6ffcc1c436b0e79d66024d83761172859c83edea8fa927b6c220e7"
+trap_merkle_root = "0x0550eda274b910ce25ff7ae79265e4fb9280df246371bcb47855b8306703100a"
 
 # Move coordinates (x, y) - must be in range [0, 7] for 8x8 grid
 move_x = "2"
@@ -16,17 +16,17 @@ is_hit = "0"
 # Merkle proof depth (fixed at 6 for 8x8 grid = 64 cells = 2^6)
 trap_merkle_proof_length = "6"
 
-# Merkle proof indices: binary representation of leaf index (0 for this example: 0*8+0=0)
+# Merkle proof indices: binary representation of leaf index (19 = 0b010011)
 trap_merkle_proof_indices = ["1", "1", "0", "0", "1", "0"]
 
-# Merkle proof siblings: replace with actual sibling hashes from your Merkle tree
+# Merkle proof siblings: valid sibling hashes computed using poseidon_hash_1 for leaf commitments
 trap_merkle_proof_siblings = [
-    "0x2d6420fccddd3a66ca877646a0b4ce643e2f9a4b58021f44644b418481a6605b",
-    "0x006ffb06d452f730af0adaa73938805999a76de07c62b81051986373c9682e97",
-    "0x1ac0fbfd352008842bafe50fdc673e52738b931497aea7fbfb7a5b064e95b87e",
-    "0x09bab01445bef38ffdd4c8ac75f21a2c49d6bf4f59ca78753dd4a8649dc03130",
-    "0x15fb8a3d77343ab9c5f82ade8300bfe25d9c1f97c4491bad6a290288c692b0f9",
-    "0x2a7a2c070ceb9d236d9191b10e6f654b502668cd4e0e661b7319f092c77b3a14"
+    "0x2a09a9fd93c590c26b91effbb2499f07e8f7aa12e2b4940a3aed2411cb65e11c",
+    "0x17192e62a157556849d93b3c6be1e2bd1f3f1660d10dd9b1ffc429aa9021252c",
+    "0x04d5abb4c7f77e3b5d8bc7a049d5ba6e79f29c5c5a9edf0a58726e653e8bc0c7",
+    "0x0ea559a90beac7d48cc70dfad2fea27621b76f140446329b293a04454ccb0ec3",
+    "0x03c37b159bdd72ed658f729c7868143b16fb120e3e4f67b539396b93c96aa239",
+    "0x2fa27c5cf0185654d6dcf10df1b382324abdf62d73d395be1cc935ab470354f0"
 ]
 
 [private_inputs]

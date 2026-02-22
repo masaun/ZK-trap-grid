@@ -10,7 +10,7 @@
  *        or with tsx: tsx generate_test_data.ts [move_x] [move_y]
  */
 
-import { poseidon2 } from 'poseidon-lite';
+import { poseidon1, poseidon2 } from 'poseidon-lite';
 
 // Constants from the circuit
 const GRID_SIZE = 8;
@@ -54,9 +54,11 @@ function generateTrapGrid(traps: TrapPosition[] = []): number[] {
 
 /**
  * Compute trap commitment for a given cell
+ * Using poseidon1 to match the circuit: poseidon_hash_1([trap_value as Field])
  */
 function computeTrapCommitment(trapValue: number, leafIndex: number): bigint {
-  return poseidonHash2(BigInt(trapValue), BigInt(leafIndex));
+  // Match the circuit which uses: poseidon_hash_1([trap_value as Field])
+  return poseidon1([BigInt(trapValue)]);
 }
 
 /**

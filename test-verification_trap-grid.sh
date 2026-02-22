@@ -55,10 +55,9 @@ echo "==> 1a) cd $TRAP_GRID_MERKLE"
 cd "$TRAP_GRID_MERKLE"
 
 echo "==> 1b) Build circuit + witness"
-npm i -D @aztec/bb.js@0.87.0 source-map-support typescript @types/node
+npm i -D @aztec/bb.js@0.87.0 source-map-support typescript @types/node tsx
 
-echo "==> 1c) Compile TypeScript helpers"
-cd scripts && npx tsc && cd ..
+echo "==> 1c) TypeScript helpers ready (using tsx)"
 
 nargo compile
 nargo execute
@@ -76,7 +75,7 @@ node "$BBJS" prove_ultra_keccak_honk \
   -o ./target/proof.with_public_inputs
 
 echo "==> 1e) Split proof into public_inputs + proof bytes"
-PUB_COUNT="$(node scripts/helpers/count_pub_inputs.js)"
+PUB_COUNT="$(cd scripts && npx tsx helpers/count_pub_inputs.ts)"
 PUB_BYTES=$((PUB_COUNT * 32))
 
 head -c "$PUB_BYTES" target/proof.with_public_inputs > target/public_inputs
@@ -110,10 +109,9 @@ echo "==> 2a) cd $TRAP_GRID_MOVEMENT"
 cd "$TRAP_GRID_MOVEMENT"
 
 echo "==> 2b) Build circuit + witness"
-npm i -D @aztec/bb.js@0.87.0 source-map-support typescript @types/node
+npm i -D @aztec/bb.js@0.87.0 source-map-support typescript @types/node tsx
 
-echo "==> 2c) Compile TypeScript helpers"
-cd scripts && npx tsc && cd ..
+echo "==> 2c) TypeScript helpers ready (using tsx)"
 
 nargo compile
 nargo execute
@@ -131,7 +129,7 @@ node "$BBJS" prove_ultra_keccak_honk \
   -o ./target/proof.with_public_inputs
 
 echo "==> 2e) Split proof into public_inputs + proof bytes"
-PUB_COUNT="$(node scripts/helpers/count_pub_inputs.js)"
+PUB_COUNT="$(cd scripts && npx tsx helpers/count_pub_inputs.ts)"
 PUB_BYTES=$((PUB_COUNT * 32))
 
 head -c "$PUB_BYTES" target/proof.with_public_inputs > target/public_inputs
