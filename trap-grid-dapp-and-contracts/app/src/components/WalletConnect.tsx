@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { getPublicKey, isFreighterInstalled } from '@/lib/utils';
+import React from 'react';
+import { useWallet, ConnectButton } from 'stellar-wallet-kit';
 import { formatAddress } from '@/lib/utils';
 
 interface WalletConnectProps {
@@ -9,69 +9,47 @@ interface WalletConnectProps {
   connectedKey?: string;
 }
 
-export default function WalletConnect({ onConnect, connectedKey }: WalletConnectProps) {
-  const [isInstalled, setIsInstalled] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+export default function WalletConnect({ onConnect }: WalletConnectProps) {
+  const { account, isConnected, disconnect } = useWallet();
 
-  useEffect(() => {
-    checkFreighter();
-  }, []);
-
-  const checkFreighter = async () => {
-    const installed = await isFreighterInstalled();
-    setIsInstalled(installed);
-  };
-
-  const handleConnect = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const publicKey = await getPublicKey();
-      onConnect(publicKey);
-    } catch (err) {
-      setError('Failed to connect wallet');
-      console.error(err);
-    } finally {
-      setIsLoading(false);
+  // Notify parent component when wallet connects
+  React.useEffect(() => {
+    if (account?.address && isConnected) {
+      onConnect(account.address);
     }
-  };
+  }, [account, isConnected, onConnect]);
 
-  if (!isInstalled) {
+  if (isConnected && account) {
     return (
-      <div className="card text-center">
-        <p className="text-red-500 mb-4">Freighter wallet not detected</p>
-        <a
-          href="https://www.freighter.app/"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="btn btn-primary"
+      <div className="flex items-center gap-4 bg-green-100 dark:bg-green-900 px-4 py-3 rounded-lg">
+        <div className="flex items-center gap-2 flex-1">
+          <span className="text-green-800 dark:text-green-200">🟢 Connected:</span>
+          <code className="text-sm font-mono">{formatAddress(account.address)}</code>
+        </div>
+        <button
+          onClick={disconnect}
+          className="btn bg-red-500 hover:bg-red-600 text-white text-sm py-1 px-3"
         >
-          Install Freighter
-        </a>
-      </div>
-    );
-  }
-
-  if (connectedKey) {
-    return (
-      <div className="flex items-center gap-2 bg-green-100 dark:bg-green-900 px-4 py-2 rounded-lg">
-        <span className="text-green-800 dark:text-green-200">🟢 Connected:</span>
-        <code className="text-sm">{formatAddress(connectedKey)}</code>
+          Disconnect
+        </button>
       </div>
     );
   }
 
   return (
     <div>
-      <button
-        onClick={handleConnect}
-        disabled={isLoading}
+      <ConnectButton
+        label="Connect Wallet"
         className="btn btn-primary"
-      >
-        {isLoading ? 'Connecting...' : 'Connect Wallet'}
-      </button>
-      {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+        onConnect={() => {
+          // Will be handled by the useEffect above
+        }}
+      />
+      <p className="text-xs text-gray-600 dark:text-gray-400 mt-2">
+        Supports Freighter, Albedo, xBull, and other Stellar wallets
+      </p>
     </div>
   );
 }
+
+

@@ -1,16 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Grid from '@/components/Grid';
 import WalletConnect from '@/components/WalletConnect';
 import { Cell } from '@/types';
 import { initializeGrid } from '@/lib/utils';
 import { startGame, submitTransaction } from '@/lib/stellar';
-import { signTransaction } from '@/lib/utils';
+import { useWallet } from 'stellar-wallet-kit';
 import { CONTRACT_CONFIG } from '@/lib/config';
 
 export default function DefenderUI() {
-  const [publicKey, setPublicKey] = useState<string>('');
+  const { account, signTransaction } = useWallet();
+  const publicKey = account?.address;
   const [grid, setGrid] = useState<Cell[][]>(initializeGrid());
   const [sessionId, setSessionId] = useState<number>(Date.now());
   const [attackerAddress, setAttackerAddress] = useState<string>('');
@@ -18,6 +19,11 @@ export default function DefenderUI() {
   const [isSettingTraps, setIsSettingTraps] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<string>('');
+
+  const handleWalletConnect = (key: string) => {
+    // Wallet is now connected via context
+    console.log('Wallet connected:', key);
+  };
 
   const handleCellClick = (x: number, y: number) => {
     if (!isSettingTraps) return;
@@ -68,8 +74,9 @@ export default function DefenderUI() {
         publicKey
       );
 
-      // Sign with Freighter
-      const signedXDR = await signTransaction(xdr, CONTRACT_CONFIG.networkPassphrase);
+      // Sign with wallet
+      const signResult = await signTransaction(xdr);
+      const signedXDR = signResult.signedTxXdr;
 
       // Submit transaction
       const result = await submitTransaction(signedXDR);
@@ -100,7 +107,7 @@ export default function DefenderUI() {
         </p>
 
         <div className="mb-6">
-          <WalletConnect onConnect={setPublicKey} connectedKey={publicKey} />
+          <WalletConnect onConnect={handleWalletConnect} />
         </div>
 
         {publicKey && (

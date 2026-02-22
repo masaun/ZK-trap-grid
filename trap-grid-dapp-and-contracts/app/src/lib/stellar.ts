@@ -1,9 +1,6 @@
 import * as StellarSdk from '@stellar/stellar-sdk';
 import { CONTRACT_CONFIG } from './config';
 import { GameState, Move } from '@/types';
-import { signTransaction as signWithFreighter } from './utils';
-
-export { signWithFreighter as signTransaction };
 
 /**
  * Get Stellar Server instance

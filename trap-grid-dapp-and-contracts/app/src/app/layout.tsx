@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import './wallet-kit.css';
+import { WalletProviderWrapper } from '@/providers/WalletProviderWrapper';
 
 export const metadata: Metadata = {
   title: 'ZK Trap Grid Game',
@@ -13,7 +15,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <WalletProviderWrapper>
+          {children}
+        </WalletProviderWrapper>
+      </body>
     </html>
   );
 }

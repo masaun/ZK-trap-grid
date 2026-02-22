@@ -6,11 +6,12 @@ import WalletConnect from '@/components/WalletConnect';
 import { Cell, GameState, Move } from '@/types';
 import { initializeGrid } from '@/lib/utils';
 import { getGameState, getMoves, makeMove, submitTransaction } from '@/lib/stellar';
-import { signTransaction } from '@/lib/utils';
+import { useWallet } from 'stellar-wallet-kit';
 import { CONTRACT_CONFIG } from '@/lib/config';
 
 export default function AttackerUI() {
-  const [publicKey, setPublicKey] = useState<string>('');
+  const { account, signTransaction } = useWallet();
+  const publicKey = account?.address;
   const [grid, setGrid] = useState<Cell[][]>(initializeGrid());
   const [sessionId, setSessionId] = useState<number>(0);
   const [gameState, setGameState] = useState<GameState | null>(null);
@@ -18,6 +19,11 @@ export default function AttackerUI() {
   const [selectedCell, setSelectedCell] = useState<{ x: number; y: number } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<string>('');
+
+  const handleWalletConnect = (key: string) => {
+    // Wallet is now connected via context
+    console.log('Wallet connected:', key);
+  };
 
   useEffect(() => {
     if (sessionId > 0) {
@@ -97,7 +103,8 @@ export default function AttackerUI() {
         publicKey
       );
 
-      const signedXDR = await signTransaction(xdr, CONTRACT_CONFIG.networkPassphrase);
+      const signResult = await signTransaction(xdr);
+      const signedXDR = signResult.signedTxXdr;
       const result = await submitTransaction(signedXDR);
 
       if (result.status === 'SUCCESS') {
@@ -130,7 +137,7 @@ export default function AttackerUI() {
         </p>
 
         <div className="mb-6">
-          <WalletConnect onConnect={setPublicKey} connectedKey={publicKey} />
+          <WalletConnect onConnect={handleWalletConnect} />
         </div>
 
         {publicKey && (

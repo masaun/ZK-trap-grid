@@ -74,8 +74,7 @@ export async function generateProof(
 
   try {
     // Dynamic import of BB.js to avoid SSR issues in Next.js
-    const { UltraHonkBackend, Noir } = await import('@noir-lang/noir_js');
-    const { BarretenbergBackend } = await import('@noir-lang/backend_barretenberg');
+    const { BarretenbergBackend, Noir } = await import('@noir-lang/noir_js');
     
     // Load the compiled circuit
     // The circuit artifact should be copied to public/circuits/ during build
@@ -146,7 +145,7 @@ export async function verifyProofLocally(
   publicInputs: Uint8Array
 ): Promise<boolean> {
   try {
-    const { BarretenbergBackend } = await import('@noir-lang/backend_barretenberg');
+    const { BarretenbergBackend } = await import('@noir-lang/noir_js');
     
     const circuitResponse = await fetch('/circuits/trap_grid_position_movement.json');
     if (!circuitResponse.ok) {
@@ -201,8 +200,7 @@ export async function loadCircuit() {
  * Example usage for integrating with @noir-lang/noir_js:
  * 
  * ```typescript
- * import { BarretenbergBackend } from '@noir-lang/backend_barretenberg';
- * import { Noir } from '@noir-lang/noir_js';
+ * import { BarretenbergBackend, Noir } from '@noir-lang/noir_js';
  * 
  * const circuit = await loadCircuit();
  * const backend = new BarretenbergBackend(circuit);
