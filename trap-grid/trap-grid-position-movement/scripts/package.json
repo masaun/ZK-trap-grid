@@ -1,8 +1,8 @@
 {
   "devDependencies": {
     "@aztec/bb.js": "^0.87.0",
-    "@types/node": "^25.3.0",
+    "poseidon-lite": "^0.3.0",
     "source-map-support": "^0.5.21",
-    "typescript": "^5.9.3"
+    "tsx": "^4.21.0"
   }
 }

@@ -19,7 +19,7 @@ interface CircuitAbi {
   };
 }
 
-const abiPath = path.join(__dirname, '../../target/trap_grid.json');
+const abiPath = path.join(__dirname, '../../target/trap_grid_position_movement.json');
 const abiData: CircuitAbi = JSON.parse(fs.readFileSync(abiPath, 'utf-8'));
 
 const publicParam = abiData.abi.parameters.find(p => p.visibility === 'public');
