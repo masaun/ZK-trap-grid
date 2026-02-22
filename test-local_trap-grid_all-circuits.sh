@@ -331,7 +331,7 @@ stellar contract invoke \
   --proof_bytes-file-path "$TRAP_GRID_MERKLE/target/proof"
 
 echo "==> 4b) Verify circuit 1 proof on-chain (--send yes)"
-stellar contract invoke \
+VERIFY_OUTPUT_C1=$(stellar contract invoke \
   --id "$CID_MERKLE" \
   --source-account "$SOURCE_ACCOUNT" \
   --network local \
@@ -339,9 +339,15 @@ stellar contract invoke \
   -- \
   verify_proof \
   --public_inputs-file-path "$TRAP_GRID_MERKLE/target/public_inputs" \
-  --proof_bytes-file-path "$TRAP_GRID_MERKLE/target/proof"
+  --proof_bytes-file-path "$TRAP_GRID_MERKLE/target/proof" 2>&1)
+
+# Extract transaction hash
+TX_HASH_C1=$(echo "$VERIFY_OUTPUT_C1" | grep -oE '[a-f0-9]{64}' | head -n1)
 
 echo "    ✓ Circuit 1 on-chain verification succeeded!"
+if [ -n "$TX_HASH_C1" ]; then
+    echo "      Transaction Hash: $TX_HASH_C1"
+fi
 
 # ============================================================================
 # DEPLOY AND VERIFY CIRCUIT 2: trap-grid-position-movement
@@ -375,7 +381,7 @@ stellar contract invoke \
   --proof_bytes-file-path "$TRAP_GRID_MOVEMENT/target/proof"
 
 echo "==> 5b) Verify circuit 2 proof on-chain (--send yes)"
-stellar contract invoke \
+VERIFY_OUTPUT_C2=$(stellar contract invoke \
   --id "$CID_MOVEMENT" \
   --source-account "$SOURCE_ACCOUNT" \
   --network local \
@@ -383,15 +389,35 @@ stellar contract invoke \
   -- \
   verify_proof \
   --public_inputs-file-path "$TRAP_GRID_MOVEMENT/target/public_inputs" \
-  --proof_bytes-file-path "$TRAP_GRID_MOVEMENT/target/proof"
+  --proof_bytes-file-path "$TRAP_GRID_MOVEMENT/target/proof" 2>&1)
+
+# Extract transaction hash
+TX_HASH_C2=$(echo "$VERIFY_OUTPUT_C2" | grep -oE '[a-f0-9]{64}' | head -n1)
 
 echo "    ✓ Circuit 2 on-chain verification succeeded!"
+if [ -n "$TX_HASH_C2" ]; then
+    echo "      Transaction Hash: $TX_HASH_C2"
+fi
 
 echo ""
 echo "════════════════════════════════════════════════════════════"
 echo "✅ ALL VERIFICATIONS COMPLETED SUCCESSFULLY!"
 echo "════════════════════════════════════════════════════════════"
 echo "Both circuits were verified on-chain:"
-echo "  1. Merkle Root: $CID_MERKLE"
-echo "  2. Position Movement: $CID_MOVEMENT"
+echo ""
+if [ -n "$TX_HASH_C1" ]; then
+    echo "  1. Merkle Root"
+    echo "     Transaction Hash: $TX_HASH_C1"
+    echo "     Contract ID: $CID_MERKLE"
+else
+    echo "  1. Merkle Root: $CID_MERKLE"
+fi
+echo ""
+if [ -n "$TX_HASH_C2" ]; then
+    echo "  2. Position Movement"
+    echo "     Transaction Hash: $TX_HASH_C2"
+    echo "     Contract ID: $CID_MOVEMENT"
+else
+    echo "  2. Position Movement: $CID_MOVEMENT"
+fi
 echo "════════════════════════════════════════════════════════════"

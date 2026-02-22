@@ -201,7 +201,7 @@ echo ""
 echo "==> 6a) Attempting proof verification for circuit 1 (expected to fail)"
 echo "    This demonstrates the protocol limitation..."
 
-stellar contract invoke \
+VERIFY_OUTPUT_C1=$(stellar contract invoke \
   --id "$CID_MERKLE" \
   --source-account "$SOURCE_ACCOUNT" \
   --network testnet \
@@ -209,12 +209,27 @@ stellar contract invoke \
   -- \
   verify_proof \
   --public_inputs-file-path "$TRAP_GRID_MERKLE/target/public_inputs" \
-  --proof_bytes-file-path "$TRAP_GRID_MERKLE/target/proof" || {
+  --proof_bytes-file-path "$TRAP_GRID_MERKLE/target/proof" 2>&1)
+VERIFY_EXIT_C1=$?
+
+if [ $VERIFY_EXIT_C1 -eq 0 ]; then
+    # Extract transaction hash
+    TX_HASH_C1=$(echo "$VERIFY_OUTPUT_C1" | grep -oE '[a-f0-9]{64}' | head -n1)
+    echo ""
+    echo "═══════════════════════════════════════"
+    echo "✅ Circuit 1 verification succeeded!"
+    if [ -n "$TX_HASH_C1" ]; then
+        echo "Transaction Hash: $TX_HASH_C1"
+        echo "🔗 https://stellar.expert/explorer/testnet/tx/$TX_HASH_C1"
+    fi
+    echo "Contract ID: $CID_MERKLE"
+    echo "═══════════════════════════════════════"
+else
     echo ""
     echo "═══════════════════════════════════════"
     echo "❌ Circuit 1 verification failed as expected: Budget ExceededLimit"
     echo "═══════════════════════════════════════"
-  }
+fi
 
 # ============================================================================
 # DEPLOY AND VERIFY CIRCUIT 2: trap-grid-position-movement
@@ -247,7 +262,7 @@ echo ""
 echo "==> 6b) Attempting proof verification for circuit 2 (expected to fail)"
 echo "    This demonstrates the protocol limitation..."
 
-stellar contract invoke \
+VERIFY_OUTPUT_C2=$(stellar contract invoke \
   --id "$CID_MOVEMENT" \
   --source-account "$SOURCE_ACCOUNT" \
   --network testnet \
@@ -255,12 +270,27 @@ stellar contract invoke \
   -- \
   verify_proof \
   --public_inputs-file-path "$TRAP_GRID_MOVEMENT/target/public_inputs" \
-  --proof_bytes-file-path "$TRAP_GRID_MOVEMENT/target/proof" || {
+  --proof_bytes-file-path "$TRAP_GRID_MOVEMENT/target/proof" 2>&1)
+VERIFY_EXIT_C2=$?
+
+if [ $VERIFY_EXIT_C2 -eq 0 ]; then
+    # Extract transaction hash
+    TX_HASH_C2=$(echo "$VERIFY_OUTPUT_C2" | grep -oE '[a-f0-9]{64}' | head -n1)
+    echo ""
+    echo "═══════════════════════════════════════"
+    echo "✅ Circuit 2 verification succeeded!"
+    if [ -n "$TX_HASH_C2" ]; then
+        echo "Transaction Hash: $TX_HASH_C2"
+        echo "🔗 https://stellar.expert/explorer/testnet/tx/$TX_HASH_C2"
+    fi
+    echo "Contract ID: $CID_MOVEMENT"
+    echo "═══════════════════════════════════════"
+else
     echo ""
     echo "═══════════════════════════════════════"
     echo "❌ Circuit 2 verification failed as expected: Budget ExceededLimit"
     echo "═══════════════════════════════════════"
-  }
+fi
 
 echo ""
 echo "════════════════════════════════════════════════════════════"
