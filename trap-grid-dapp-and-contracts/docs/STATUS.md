@@ -153,7 +153,7 @@ bun run dev  # Terminal 3
 ```
 
 ### Player A (Defender)
-1. Open http://localhost:3000/defender
+1. Open http://localhost:5678/defender
 2. Connect Freighter wallet
 3. Click cells to place traps (💣)
 4. Click "Commit Trap Grid"
@@ -162,7 +162,7 @@ bun run dev  # Terminal 3
 7. Share session ID with Player B
 
 ### Player B (Attacker)
-1. Open http://localhost:3000/attacker
+1. Open http://localhost:5678/attacker
 2. Connect Freighter wallet
 3. Enter session ID from Player A
 4. Click "Load Game"

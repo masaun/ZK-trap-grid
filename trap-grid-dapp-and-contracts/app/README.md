@@ -41,7 +41,7 @@ A Next.js frontend for the ZK Trap Grid game on Stellar blockchain.
    ```
 
 4. **Open browser**:
-   Navigate to [http://localhost:3000](http://localhost:3000)
+   Navigate to [http://localhost:5678](http://localhost:5678)
 
 ## Pages
 
@@ -144,7 +144,7 @@ COPY package*.json ./
 RUN npm install
 COPY . .
 RUN npm run build
-EXPOSE 3000
+EXPOSE 5678
 CMD ["npm", "start"]
 ```
 

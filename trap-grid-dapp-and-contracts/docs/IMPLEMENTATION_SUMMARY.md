@@ -169,7 +169,7 @@ Next.js App
 ### Playing a Game
 
 **As Defender (Player A):**
-1. Open browser to `localhost:3000/defender`
+1. Open browser to `localhost:5678/defender`
 2. Connect Freighter wallet
 3. Click grid cells to place traps
 4. Click "Commit Trap Grid" to generate Merkle root
@@ -178,7 +178,7 @@ Next.js App
 7. Share session ID with attacker
 
 **As Attacker (Player B):**
-1. Open browser to `localhost:3000/attacker`
+1. Open browser to `localhost:5678/attacker`
 2. Connect Freighter wallet
 3. Enter session ID from defender
 4. Click "Load Game"

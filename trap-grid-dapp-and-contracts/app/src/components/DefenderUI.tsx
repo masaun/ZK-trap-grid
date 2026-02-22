@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Grid from '@/components/Grid';
 import WalletConnect from '@/components/WalletConnect';
 import { Cell } from '@/types';
-import { initializeGrid, buildMerkleTree, getCellIndex } from '@/lib/utils';
+import { initializeGrid } from '@/lib/utils';
 import { startGame, submitTransaction } from '@/lib/stellar';
 import { signTransaction } from '@/lib/utils';
 import { CONTRACT_CONFIG } from '@/lib/config';
@@ -15,7 +15,6 @@ export default function DefenderUI() {
   const [sessionId, setSessionId] = useState<number>(Date.now());
   const [attackerAddress, setAttackerAddress] = useState<string>('');
   const [points, setPoints] = useState<number>(1000);
-  const [merkleRoot, setMerkleRoot] = useState<string>('');
   const [isSettingTraps, setIsSettingTraps] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<string>('');
@@ -31,7 +30,7 @@ export default function DefenderUI() {
   };
 
   const handleCommitTraps = () => {
-    // Build trap values array
+    // Build trap values array (row-major order)
     const trapValues: number[] = [];
     for (let x = 0; x < 8; x++) {
       for (let y = 0; y < 8; y++) {
@@ -39,21 +38,18 @@ export default function DefenderUI() {
       }
     }
 
-    // Build Merkle tree and get root
-    const { root, tree } = buildMerkleTree(trapValues);
-    setMerkleRoot(root);
     setIsSettingTraps(false);
-    setMessage('Trap grid committed! Root: ' + root.substring(0, 20) + '...');
+    setMessage('Trap grid saved locally! You can now start the game.');
 
     // Store trap data in local storage for proof generation later
     localStorage.setItem(
       `trap-grid-${sessionId}`,
-      JSON.stringify({ trapValues, tree })
+      JSON.stringify({ trapValues })
     );
   };
 
   const handleStartGame = async () => {
-    if (!publicKey || !attackerAddress || !merkleRoot) {
+    if (!publicKey || !attackerAddress) {
       setMessage('Please fill all fields');
       return;
     }
@@ -62,15 +58,11 @@ export default function DefenderUI() {
     setMessage('Starting game...');
 
     try {
-      // Convert merkle root to bytes (placeholder - needs proper conversion)
-      const merkleRootBytes = merkleRoot;
-
-      // Build transaction
+      // Build transaction (no trap commitment needed upfront)
       const xdr = await startGame(
         sessionId,
         publicKey, // defender
         attackerAddress, // attacker
-        merkleRootBytes,
         points,
         points,
         publicKey
@@ -161,8 +153,8 @@ export default function DefenderUI() {
               </h2>
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
                 {isSettingTraps
-                  ? 'Click cells to place/remove traps (💣)'
-                  : 'Traps are hidden from attacker'}
+                  ? 'Click cells to place/remove traps (💣). Use the position-movement circuit for ZK proofs.'
+                  : 'Traps are stored locally. Generate proofs when attacker makes moves.'}
               </p>
 
               <div className="flex justify-center mb-4">
@@ -185,7 +177,7 @@ export default function DefenderUI() {
                     className="btn btn-primary"
                     disabled={trapCount === 0}
                   >
-                    Commit Trap Grid
+                    Save Trap Grid
                   </button>
                 ) : (
                   <button
@@ -205,10 +197,15 @@ export default function DefenderUI() {
               </div>
             )}
 
-            {merkleRoot && (
+            {!isSettingTraps && (
               <div className="card bg-green-50 dark:bg-green-900">
-                <h3 className="font-semibold mb-2">Merkle Root Commitment:</h3>
-                <code className="text-xs break-all">{merkleRoot}</code>
+                <h3 className="font-semibold mb-2">Next Steps:</h3>
+                <p className="text-sm">
+                  1. Start the game<br />
+                  2. Wait for attacker to make moves<br />
+                  3. Generate ZK proofs using the position-movement circuit for each move<br />
+                  4. Each proof verifies the trap value at a specific position without revealing other traps
+                </p>
               </div>
             )}
           </>

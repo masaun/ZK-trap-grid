@@ -1,5 +1,5 @@
-import { Cell, MerkleProof } from '@/types';
-import { GRID_SIZE, MERKLE_TREE_DEPTH } from './config';
+import { Cell } from '@/types';
+import { GRID_SIZE } from './config';
 
 /**
  * Initialize an empty grid
@@ -34,80 +34,6 @@ export function getCoordinatesFromIndex(index: number): { x: number; y: number }
   const x = Math.floor(index / GRID_SIZE);
   const y = index % GRID_SIZE;
   return { x, y };
-}
-
-/**
- * Simple hash function (placeholder - should use Poseidon in production)
- */
-export function hashTrapValue(trapValue: number, index: number): string {
-  // This is a placeholder. In production, use actual Poseidon hash
-  // matching the circuit implementation
-  return `hash_${trapValue}_${index}`;
-}
-
-/**
- * Build Merkle tree from trap values
- */
-export function buildMerkleTree(trapValues: number[]): {
-  root: string;
-  tree: string[][];
-} {
-  if (trapValues.length !== GRID_SIZE * GRID_SIZE) {
-    throw new Error('Invalid trap values length');
-  }
-
-  // Build leaves (hash each trap value with its index)
-  const leaves = trapValues.map((value, index) => hashTrapValue(value, index));
-
-  // Build tree bottom-up
-  const tree: string[][] = [leaves];
-  let currentLevel = leaves;
-
-  while (currentLevel.length > 1) {
-    const nextLevel: string[] = [];
-    for (let i = 0; i < currentLevel.length; i += 2) {
-      const left = currentLevel[i];
-      const right = i + 1 < currentLevel.length ? currentLevel[i + 1] : left;
-      // Simple concatenation hash (replace with actual hash in production)
-      nextLevel.push(`hash(${left},${right})`);
-    }
-    tree.push(nextLevel);
-    currentLevel = nextLevel;
-  }
-
-  return {
-    root: currentLevel[0],
-    tree,
-  };
-}
-
-/**
- * Generate Merkle proof for a specific leaf
- */
-export function generateMerkleProof(
-  tree: string[][],
-  leafIndex: number
-): MerkleProof {
-  const indices: number[] = [];
-  const siblings: string[] = [];
-
-  let currentIndex = leafIndex;
-
-  for (let level = 0; level < tree.length - 1; level++) {
-    const isRightNode = currentIndex % 2 === 1;
-    const siblingIndex = isRightNode ? currentIndex - 1 : currentIndex + 1;
-
-    indices.push(isRightNode ? 1 : 0);
-    siblings.push(
-      siblingIndex < tree[level].length
-        ? tree[level][siblingIndex]
-        : tree[level][currentIndex]
-    );
-
-    currentIndex = Math.floor(currentIndex / 2);
-  }
-
-  return { indices, siblings };
 }
 
 /**

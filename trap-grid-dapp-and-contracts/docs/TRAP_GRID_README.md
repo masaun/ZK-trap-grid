@@ -102,7 +102,7 @@ npm run dev
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open [http://localhost:5678](http://localhost:5678) in your browser.
 
 ## How to Play
 

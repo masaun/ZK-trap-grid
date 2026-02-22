@@ -4,7 +4,6 @@ export interface GameState {
   attacker: string;
   defenderPoints: number;
   attackerPoints: number;
-  trapMerkleRoot: string;
   movesMade: number;
   hits: number;
   misses: number;

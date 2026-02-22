@@ -11,8 +11,8 @@
 //! This game integrates with the Game Hub contract for session management and scoring.
 
 use soroban_sdk::{
-    Address, Bytes, BytesN, Env, IntoVal, String, Vec, contract, contractclient, contracterror,
-    contractimpl, contracttype, symbol_short, vec,
+    Address, Bytes, Env, IntoVal, Vec, contract, contractclient, contracterror,
+    contractimpl, contracttype, vec,
 };
 
 // Import GameHub contract interface
@@ -73,7 +73,6 @@ pub struct Game {
     pub attacker: Address,        // Player B
     pub defender_points: i128,
     pub attacker_points: i128,
-    pub trap_merkle_root: BytesN<32>, // Commitment to trap grid
     pub moves_made: u32,
     pub hits: u32,
     pub misses: u32,
@@ -132,13 +131,12 @@ impl TrapGridContract {
             .set(&DataKey::VerifierAddress, &verifier);
     }
 
-    /// Start a new game between defender and attacker with trap grid commitment
+    /// Start a new game between defender and attacker
     ///
     /// # Arguments
     /// * `session_id` - Unique session identifier
     /// * `defender` - Player A who sets up traps
     /// * `attacker` - Player B who makes moves
-    /// * `trap_merkle_root` - Merkle root commitment of trap grid
     /// * `defender_points` - Points committed by defender
     /// * `attacker_points` - Points committed by attacker
     pub fn start_game(
@@ -146,7 +144,6 @@ impl TrapGridContract {
         session_id: u32,
         defender: Address,
         attacker: Address,
-        trap_merkle_root: BytesN<32>,
         defender_points: i128,
         attacker_points: i128,
     ) -> Result<(), Error> {
@@ -191,7 +188,6 @@ impl TrapGridContract {
             attacker: attacker.clone(),
             defender_points,
             attacker_points,
-            trap_merkle_root,
             moves_made: 0,
             hits: 0,
             misses: 0,
@@ -225,8 +221,8 @@ impl TrapGridContract {
     /// * `x` - X coordinate of move (0-7)
     /// * `y` - Y coordinate of move (0-7)
     /// * `is_hit` - Defender's claim: true if trap hit, false if miss
-    /// * `proof` - ZK proof of the claim
-    /// * `public_inputs` - Public inputs for proof verification
+    /// * `proof` - ZK proof of the claim (UltraHonk proof from position-movement circuit)
+    /// * `public_inputs` - Public inputs for proof verification (trap_commitment, move_x, move_y, is_hit)
     pub fn make_move(
         env: Env,
         session_id: u32,

@@ -27,7 +27,6 @@ export async function startGame(
   sessionId: number,
   defender: string,
   attacker: string,
-  trapMerkleRoot: string,
   defenderPoints: number,
   attackerPoints: number,
   signerPublicKey: string
@@ -47,7 +46,6 @@ export async function startGame(
         StellarSdk.nativeToScVal(sessionId, { type: 'u32' }),
         new StellarSdk.Address(defender).toScVal(),
         new StellarSdk.Address(attacker).toScVal(),
-        StellarSdk.nativeToScVal(trapMerkleRoot, { type: 'bytes' }),
         StellarSdk.nativeToScVal(defenderPoints, { type: 'i128' }),
         StellarSdk.nativeToScVal(attackerPoints, { type: 'i128' })
       )

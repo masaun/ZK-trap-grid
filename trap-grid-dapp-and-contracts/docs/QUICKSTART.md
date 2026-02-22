@@ -110,7 +110,7 @@ npm run dev  # or bun dev
 
 ### Step 5: Play the Game!
 
-**Browser 1 - Defender** (http://localhost:3000/defender)
+**Browser 1 - Defender** (http://localhost:5678/defender)
 1. Connect Freighter wallet
 2. Click cells to place traps
 3. Click "Commit Trap Grid"
@@ -118,7 +118,7 @@ npm run dev  # or bun dev
 5. Click "Start Game"
 6. Share the session ID
 
-**Browser 2 - Attacker** (http://localhost:3000/attacker)
+**Browser 2 - Attacker** (http://localhost:5678/attacker)
 1. Connect Freighter wallet (different account)
 2. Enter session ID
 3. Click "Load Game"
