@@ -26,7 +26,7 @@ use types::{
 // @dev - Private inputs struct
 pub struct PrivateInputs {
     trap_value: u32,  // @dev - 0 for no trap, 1 for trap
-    secret: Field     // @dev - Secret value of dApp for the trap commitment
+    //secret: Field     // @dev - Secret value of dApp for the trap commitment
 }
 
 /**
@@ -50,7 +50,7 @@ fn main(
 
     // ------------ PRIVATE INPUTS ------------- //
     let trap_value: u32 = private_inputs.trap_value; // @dev - Trap value at the move coordinates (0 or 1)
-    let secret: Field = private_inputs.secret;       // @dev - Secret value of dApp for the trap commitment
+    //let secret: Field = private_inputs.secret;     // @dev - Secret value of dApp for the trap commitment
 
     // 1. Constraint: Validate coordinates are within grid
     assert(move_x >= 0);
@@ -95,11 +95,11 @@ fn main(
     // assert(reconstructed_moved_position_index == moved_position_index);
 
     // 5-1: Compute a trap commitment by hashing the trap value with the moved position index. This commitment represents the specific trap configuration at the move coordinates and will be used as the leaf value for Merkle proof verification.
-    let computed_trap_commitment = poseidon_hash_4([
-        move_x as Field, 
-        move_y as Field, 
-        trap_value as Field,
-        secret
+    let computed_trap_commitment = poseidon_hash_1([
+        //move_x as Field, 
+        //move_y as Field, 
+        trap_value as Field
+        //secret
     ]);
     //let trap_commitment = poseidon_hash_2([trap_value as Field, moved_position_index as Field]);
 

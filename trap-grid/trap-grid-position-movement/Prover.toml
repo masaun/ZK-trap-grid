@@ -3,9 +3,9 @@
 # This is placeholder data that will need to be replaced with real values
 
 [public_inputs]
-# Trap commitment (computed as poseidon_hash_4([move_x, move_y, trap_value, secret]))
+# Trap commitment (computed as poseidon_hash_1([trap_value]))
 # This should match the commitment computed from the private inputs
-trap_commitment = "0x26cc461d932e8eb3c8dedb0360aff98c8067128880638a757a3fe2c3e05bdf78"
+trap_commitment = "0x2a09a9fd93c590c26b91effbb2499f07e8f7aa12e2b4940a3aed2411cb65e11c"
 
 # Move coordinates (x, y) - must be in range [0, 7] for 8x8 grid
 move_x = "2"
@@ -18,8 +18,5 @@ is_hit = "0"
 # Actual trap value at (move_x, move_y): 0 for no trap, 1 for trap
 # Must match is_hit for the proof to verify
 trap_value = "0"
-
-# Secret value used for trap commitment (should be a random field element)
-secret = "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
 
 
