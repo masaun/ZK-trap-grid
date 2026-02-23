@@ -1,13 +1,10 @@
-# Sample test data - replace with actual game data
-# For a valid proof, you need to generate proper Merkle proof data
-# This is placeholder data that will need to be replaced with real values
+# Sample test data for the simplified position-movement circuit
+# The circuit verifies that:
+# 1. Move coordinates are within grid bounds (0-7 for 8x8 grid)
+# 2. trap_value is boolean (0 or 1)
+# 3. trap_value matches is_hit (claimed result)
 
 [public_inputs]
-# Trap commitment (computed as poseidon_hash_1([trap_value]))
-# This should match the commitment computed from the private inputs
-# For trap_value=1: 0x29176100eaa962bdc1fe6c654d6a3c130e96a4d1168b33848b897dc502820133
-trap_commitment = "0x29176100eaa962bdc1fe6c654d6a3c130e96a4d1168b33848b897dc502820133"
-
 # Move coordinates (x, y) - must be in range [0, 7] for 8x8 grid
 move_x = "2"
 move_y = "3"

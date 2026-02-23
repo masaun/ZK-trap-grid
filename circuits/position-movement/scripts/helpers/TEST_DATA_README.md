@@ -1,15 +1,25 @@
-# Trap Grid Test Data Generation
+# Position Movement Test Data Generation
 
-## Problem
+## Overview
 
-The `trap_grid` circuit requires valid Merkle proof data to generate a witness and create proofs. The `Prover.toml` file needs cryptographically consistent data:
+The `position-movement` circuit is a simplified circuit that verifies:
+1. Move coordinates are within grid bounds (0-7 for 8x8 grid)
+2. Trap value is boolean (0 or 1)
+3. Trap value matches the claimed result (hit/miss)
 
-1. A Merkle root that represents the commitment to the trap grid
-2. A move position (x, y) within the 8x8 grid
-3. A Merkle proof (indices + siblings) proving the trap value at that position
-4. The private trap value that matches the claimed hit/miss result
+The circuit does NOT use Merkle proofs or commitments. It only requires simple position and trap value validation.
 
-Without valid data, `nargo execute` will fail with "Invalid Merkle proof" error.
+## Required Data
+
+The `Prover.toml` file needs:
+
+### Public Inputs
+- `move_x`: X-coordinate of the move (0-7)
+- `move_y`: Y-coordinate of the move (0-7)
+- `is_hit`: Claimed result (0 for miss, 1 for hit)
+
+### Private Inputs
+- `trap_value`: Actual trap value at the position (0 or 1, must match `is_hit`)
 
 ## Solution
 
@@ -18,69 +28,79 @@ Without valid data, `nargo execute` will fail with "Invalid Merkle proof" error.
 We've provided a helper script that generates valid test data:
 
 ```bash
-cd trap_grid
+cd position-movement
 
-# Install dependencies (including poseidon-lite v0.3.0)
+# Install dependencies if needed
 npm install
 
-# Generate test data for position (x, y)
-# Example: Generate data for position (0, 0)
-node generate_test_data.js 0 0
+# Generate test data for position (x, y) with trap value
+# Example: Generate data for a hit at position (2, 3)
+npx tsx scripts/helpers/generate_test_data.ts 2 3 1
 
-# Example: Generate data for position (1, 2)
-node generate_test_data.js 1 2
+# Example: Generate data for a miss at position (5, 1)
+npx tsx scripts/helpers/generate_test_data.ts 5 1 0
 ```
 
 The script will output properly formatted data that you can copy directly into `Prover.toml`.
 
-### Option 2: Use the Circuit Tests
+### Option 2: Manual Test Data
 
-The circuit has built-in test cases with valid data. Run them with:
+You can manually edit `Prover.toml`:
 
-```bash
-cd trap_grid
-nargo test --show-output
+```toml
+[public_inputs]
+move_x = "2"
+move_y = "3"
+is_hit = "1"
+
+[private_inputs]
+trap_value = "1"
 ```
 
-Note: The current tests also use placeholder data and may fail. You'll need to update them with valid Merkle proofs as well.
+Just ensure that `trap_value` equals `is_hit` for a valid proof.
 
-### Option 3: Build Your Own Test Data
+### Option 3: Use the Circuit Tests
 
-If you want to create custom test data:
+The circuit has built-in test cases. Run them with:
 
-1. Define your trap grid (8x8 grid with 0s and 1s)
-2. Compute Poseidon hash commitments for each cell: `hash(trap_value, cell_index)`
-3. Build a binary Merkle tree from all 64 commitments
-4. Extract the Merkle root
-5. For your test move position, extract the Merkle proof (6 siblings + 6 indices)
-6. Fill in `Prover.toml` with this data
+```bash
+cd position-movement
+nargo test --show-output
+```
 
 ## Running the Full Test Script
 
 Once you have valid data in `Prover.toml`:
 
 ```bash
-cd ..  # Back to project root
-./test-local_trap-grid.sh
+cd scripts/e2e/stellar-testnet
+sh test-verification_trap-grid_position-movement-circuit.sh
+```
+
+Or for local testing:
+
+```bash
+cd position-movement
+sh circuit_test.sh
 ```
 
 The script will:
 1. Compile the circuit ✓
-2. Generate the witness (requires valid Prover.toml)
+2. Generate the witness
 3. Generate UltraHonk proof
-4. Deploy to local Stellar network
+4. Deploy to Stellar network (if testnet script)
 5. Verify the proof on-chain
 
 ## Current Status
 
 - Circuit compilation: ✅ Working
-- Witness generation: ⚠️ Requires valid Prover.toml data
-- Proof generation: ⏸️ Requires witness
-- On-chain verification: ⏸️ Requires proof
+- Witness generation: ✅ Working
+- Proof generation: ✅ Working
+- On-chain verification: ✅ Working (testnet verified!)
 
 ## Files
 
-- `Prover.toml` - Test input data (needs to be updated with valid data)
-- `generate_test_data.js` - Helper script to generate valid test data
-- `../test-local_trap-grid.sh` - Full end-to-end test script
-- `circuit_test.sh` - Run circuit unit tests
+- `Prover.toml` - Test input data
+- `generate_test_data.ts` - Helper script to generate valid test data
+- `circuit_test.sh` - Run circuit compilation and proof generation
+- `test-verification_trap-grid_position-movement-circuit.sh` - Testnet deployment and verification

@@ -4,14 +4,10 @@
  * This script reads the Prover.toml file and extracts the public inputs,
  * then writes them to a binary file in the correct format for the verifier.
  * 
- * Public inputs order (17 fields, each 32 bytes):
- * 1. trap_merkle_root (Field)
- * 2. move_x (u32)
- * 3. move_y (u32)
- * 4. is_hit (u32)
- * 5. trap_merkle_proof_length (u32)
- * 6-11. trap_merkle_proof_indices (6 x u1)
- * 12-17. trap_merkle_proof_siblings (6 x Field)
+ * Public inputs order (3 fields, each 32 bytes):
+ * 1. move_x (u32)
+ * 2. move_y (u32)
+ * 3. is_hit (u32)
  */
 
 import * as fs from 'fs';
@@ -23,13 +19,9 @@ interface TomlData {
 }
 
 interface PublicInputs {
-  trap_merkle_root: string;
   move_x: string | number;
   move_y: string | number;
   is_hit: string | number;
-  trap_merkle_proof_length: string | number;
-  trap_merkle_proof_indices: string[];
-  trap_merkle_proof_siblings: string[];
 }
 
 function parseToml(content: string): TomlData {
@@ -112,41 +104,17 @@ const data = parseToml(tomlContent);
 // Extract public inputs (they might be at root level or in public_inputs section)
 const publicInputs: PublicInputs = (data.public_inputs || data) as PublicInputs;
 
-// Build the 17 fields (each 32 bytes)
+// Build the 3 fields (each 32 bytes)
 const fields: Buffer[] = [];
 
-// 1. trap_merkle_root (Field)
-fields.push(fieldToBytes32(publicInputs.trap_merkle_root));
-
-// 2. move_x (u32)
+// 1. move_x (u32)
 fields.push(u32ToBytes32(publicInputs.move_x));
 
-// 3. move_y (u32)
+// 2. move_y (u32)
 fields.push(u32ToBytes32(publicInputs.move_y));
 
-// 4. is_hit (u32)
+// 3. is_hit (u32)
 fields.push(u32ToBytes32(publicInputs.is_hit));
-
-// 5. trap_merkle_proof_length (u32)
-fields.push(u32ToBytes32(publicInputs.trap_merkle_proof_length));
-
-// 6-11. trap_merkle_proof_indices (6 x u1)
-const indices = Array.isArray(publicInputs.trap_merkle_proof_indices)
-  ? publicInputs.trap_merkle_proof_indices
-  : [];
-for (let i = 0; i < 6; i++) {
-  const value = indices[i] || '0';
-  fields.push(u1ToBytes32(value));
-}
-
-// 12-17. trap_merkle_proof_siblings (6 x Field)
-const siblings = Array.isArray(publicInputs.trap_merkle_proof_siblings)
-  ? publicInputs.trap_merkle_proof_siblings
-  : [];
-for (let i = 0; i < 6; i++) {
-  const value = siblings[i] || '0x0';
-  fields.push(fieldToBytes32(value));
-}
 
 // Combine all fields
 const publicInputsBuffer = Buffer.concat(fields);
@@ -161,4 +129,4 @@ if (!fs.existsSync(targetDir)) {
 fs.writeFileSync(outputPath, publicInputsBuffer);
 
 console.log(`✓ Generated public_inputs file: ${publicInputsBuffer.length} bytes`);
-console.log(`  Expected: ${17 * 32} bytes`);
+console.log(`  Expected: ${3 * 32} bytes`);
