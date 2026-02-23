@@ -54,12 +54,23 @@ cd "$TRAP_MERKLE_ROOT"
 echo "==> 1b) Build circuit + witness"
 npm i -D @aztec/bb.js@0.87.0 source-map-support typescript @types/node tsx
 
-echo "==> 1c) TypeScript helpers ready (using tsx)"
-
+echo "==> 1c) Compile circuit"
 nargo compile
+
+if [ ! -f "./target/trap_merkle_root.json" ]; then
+    echo "❌ Error: Circuit compilation failed - trap_merkle_root.json not found"
+    exit 1
+fi
+
+echo "==> 1d) Generate witness"
 nargo execute
 
-echo "==> 1d) Generate UltraHonk (keccak) VK + proof"
+if [ ! -f "./target/trap_merkle_root.gz" ]; then
+    echo "❌ Error: Witness generation failed - trap_merkle_root.gz not found"
+    exit 1
+fi
+
+echo "==> 1e) Generate UltraHonk (keccak) VK + proof"
 BBJS="./node_modules/@aztec/bb.js/dest/node/main.js"
 
 node "$BBJS" write_vk_ultra_keccak_honk \
@@ -71,7 +82,7 @@ node "$BBJS" prove_ultra_keccak_honk \
   -w ./target/trap_merkle_root.gz \
   -o ./target/proof.with_public_inputs
 
-echo "==> 1e) Split proof into public_inputs + proof bytes"
+echo "==> 1f) Split proof into public_inputs + proof bytes"
 PUB_COUNT="$(cd scripts && npx tsx helpers/count_pub_inputs.ts)"
 PUB_BYTES=$((PUB_COUNT * 32))
 
@@ -85,7 +96,7 @@ echo "    PUB_BYTES=$PUB_BYTES"
 PROOF_BYTES=$(wc -c < target/proof | tr -d ' ')
 echo "    Proof: $PROOF_BYTES bytes"
 
-echo "==> 1f) Optional sanity check (public_inputs)"
+echo "==> 1g) Optional sanity check (public_inputs)"
 python3 - <<'PY'
 import pathlib
 b = pathlib.Path("target/public_inputs").read_bytes()
