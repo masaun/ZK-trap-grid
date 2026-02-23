@@ -144,11 +144,41 @@ echo "✅ Circuit deployment successful!"
 echo "🔗 Contract ID: $CID_COMMITMENT"
 echo "═══════════════════════════════════════"
 echo ""
-echo "==> 3) Attempting proof verification on testnet..."
+echo "==> 3a) Check proof and public input sizes"
+PROOF_SIZE=$(wc -c < "$TRAP_COMMITMENT/target/proof" | tr -d ' ')
+PUB_INPUT_SIZE=$(wc -c < "$TRAP_COMMITMENT/target/public_inputs" | tr -d ' ')
+echo "    Proof size: $PROOF_SIZE bytes"
+echo "    Public inputs size: $PUB_INPUT_SIZE bytes"
+echo "    Total payload: $((PROOF_SIZE + PUB_INPUT_SIZE)) bytes"
+echo ""
+
+echo "==> 3b) First try simulation (--send no) for detailed diagnostics"
+set +e  # Temporarily disable exit on error
+SIM_OUTPUT=$(stellar contract invoke \
+  --id "$CID_COMMITMENT" \
+  --source-account "$SOURCE_ACCOUNT" \
+  --network testnet \
+  --send no \
+  -- \
+  verify_proof \
+  --public_inputs-file-path "$TRAP_COMMITMENT/target/public_inputs" \
+  --proof_bytes-file-path "$TRAP_COMMITMENT/target/proof" 2>&1)
+SIM_EXIT=$?
+
+if [ $SIM_EXIT -ne 0 ]; then
+    echo "    ⚠️  Simulation failed with exit code: $SIM_EXIT"
+    echo "    Simulation output:"
+    echo "$SIM_OUTPUT" | sed 's/^/      /'
+    echo ""
+else
+    echo "    ✓ Simulation successful"
+    echo ""
+fi
+
+echo "==> 3c) Attempting proof verification on testnet (--send yes)..."
 echo ""
 
 # Try verification and capture the result
-set +e  # Temporarily disable exit on error
 VERIFY_OUTPUT=$(stellar contract invoke \
   --id "$CID_COMMITMENT" \
   --source-account "$SOURCE_ACCOUNT" \
@@ -195,8 +225,44 @@ else
     echo "$VERIFY_OUTPUT"
     echo ""
     
-    # Check if it's a budget exceeded error
-    if echo "$VERIFY_OUTPUT" | grep -q "ExceededLimit"; then
+    # Check for specific error types
+    if echo "$VERIFY_OUTPUT" | grep -q "TxSorobanInvalid"; then
+        echo "⚠️  Error Type: TxSorobanInvalid"
+        echo ""
+        echo "This error indicates the transaction was rejected during validation"
+        echo "before being submitted to the network. Common causes:"
+        echo ""
+        echo "  1. Resource Limits: Transaction exceeds protocol limits for:"
+        echo "     - CPU instructions (default: ~100M instructions)"
+        echo "     - Memory usage (default: ~40MB)"
+        echo "     - Read/Write operations"
+        echo ""
+        echo "  2. Invalid Contract Invocation:"
+        echo "     - Malformed input parameters"
+        echo "     - Input data too large for Stellar's transaction size limits"
+        echo "     - Contract function signature mismatch"
+        echo ""
+        echo "  3. Account/Authorization Issues:"
+        echo "     - Insufficient balance for fees"
+        echo "     - Invalid signature or nonce"
+        echo ""
+        
+        # Check simulation output for more clues
+        if [ $SIM_EXIT -ne 0 ]; then
+            echo "  📊 Simulation also failed, suggesting resource issues."
+            echo "     The verification likely exceeds Stellar's CPU/memory limits."
+        fi
+        
+        echo ""
+        echo "For this ZK proof verification:"
+        echo "  - Proof size: $PROOF_SIZE bytes"
+        echo "  - Public inputs: $PUB_INPUT_SIZE bytes"
+        echo "  - Total: $((PROOF_SIZE + PUB_INPUT_SIZE)) bytes"
+        echo ""
+        echo "UltraHonk proof verification is computationally expensive and"
+        echo "typically requires 100M+ CPU instructions, exceeding Stellar's limits."
+        
+    elif echo "$VERIFY_OUTPUT" | grep -q "ExceededLimit"; then
         echo "⚠️  Issue: Stellar Protocol CPU Budget Exceeded"
         echo ""
         echo "The UltraHonk proof verification requires more computational"

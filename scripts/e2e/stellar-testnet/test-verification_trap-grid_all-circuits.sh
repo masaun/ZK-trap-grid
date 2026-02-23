@@ -207,7 +207,35 @@ echo "⚠️  Note: Proof verification on testnet will likely fail due to"
 echo "protocol CPU instruction limits (~100M per transaction)."
 echo "═══════════════════════════════════════"
 echo ""
-echo "==> 4b) Attempting proof verification for circuit 1 (expected to fail)"
+echo "==> 4b) Check circuit 1 proof sizes"
+PROOF_SIZE_C1=$(wc -c < "$TRAP_MERKLE_ROOT/target/proof" | tr -d ' ')
+PUB_INPUT_SIZE_C1=$(wc -c < "$TRAP_MERKLE_ROOT/target/public_inputs" | tr -d ' ')
+echo "    Proof size: $PROOF_SIZE_C1 bytes"
+echo "    Public inputs size: $PUB_INPUT_SIZE_C1 bytes"
+echo ""
+
+echo "==> 4c) Try simulation first (--send no)"
+set +e
+SIM_OUTPUT_C1=$(stellar contract invoke \
+  --id "$CID_MERKLE" \
+  --source-account "$SOURCE_ACCOUNT" \
+  --network testnet \
+  --send no \
+  -- \
+  verify_proof \
+  --public_inputs-file-path "$TRAP_MERKLE_ROOT/target/public_inputs" \
+  --proof_bytes-file-path "$TRAP_MERKLE_ROOT/target/proof" 2>&1)
+SIM_EXIT_C1=$?
+
+if [ $SIM_EXIT_C1 -ne 0 ]; then
+    echo "    ⚠️  Simulation failed (expected for large circuits)"
+    echo ""
+else
+    echo "    ✓ Simulation successful"
+    echo ""
+fi
+
+echo "==> 4d) Attempting proof verification for circuit 1 (expected to fail)"
 echo "    This demonstrates the protocol limitation..."
 
 VERIFY_OUTPUT_C1=$(stellar contract invoke \
@@ -220,6 +248,7 @@ VERIFY_OUTPUT_C1=$(stellar contract invoke \
   --public_inputs-file-path "$TRAP_MERKLE_ROOT/target/public_inputs" \
   --proof_bytes-file-path "$TRAP_MERKLE_ROOT/target/proof" 2>&1)
 VERIFY_EXIT_C1=$?
+set -e
 
 if [ $VERIFY_EXIT_C1 -eq 0 ]; then
     # Extract transaction hash
@@ -236,7 +265,21 @@ if [ $VERIFY_EXIT_C1 -eq 0 ]; then
 else
     echo ""
     echo "═══════════════════════════════════════"
-    echo "❌ Circuit 1 verification failed as expected: Budget ExceededLimit"
+    echo "❌ Circuit 1 verification failed (expected)"
+    echo "═══════════════════════════════════════"
+    
+    # Show error type
+    if echo "$VERIFY_OUTPUT_C1" | grep -q "TxSorobanInvalid"; then
+        echo "Error: TxSorobanInvalid - Transaction rejected during validation"
+    elif echo "$VERIFY_OUTPUT_C1" | grep -q "ExceededLimit"; then
+        echo "Error: ExceededLimit - Protocol CPU/memory budget exceeded"
+    fi
+    
+    echo "Proof size: $PROOF_SIZE_C1 bytes"
+    echo "Public inputs: $PUB_INPUT_SIZE_C1 bytes"
+    echo ""
+    echo "This demonstrates Stellar's current protocol limits for"
+    echo "computationally expensive ZK proof verification."
     echo "═══════════════════════════════════════"
 fi
 
@@ -272,7 +315,35 @@ echo "⚠️  Note: Proof verification on testnet will likely fail due to"
 echo "protocol CPU instruction limits (~100M per transaction)."
 echo "═══════════════════════════════════════"
 echo ""
-echo "==> 5b) Attempting proof verification for circuit 2 (expected to fail)"
+echo "==> 5b) Check circuit 2 proof sizes"
+PROOF_SIZE_C2=$(wc -c < "$POSITION_MOVEMENT/target/proof" | tr -d ' ')
+PUB_INPUT_SIZE_C2=$(wc -c < "$POSITION_MOVEMENT/target/public_inputs" | tr -d ' ')
+echo "    Proof size: $PROOF_SIZE_C2 bytes"
+echo "    Public inputs size: $PUB_INPUT_SIZE_C2 bytes"
+echo ""
+
+echo "==> 5c) Try simulation first (--send no)"
+set +e
+SIM_OUTPUT_C2=$(stellar contract invoke \
+  --id "$CID_MOVEMENT" \
+  --source-account "$SOURCE_ACCOUNT" \
+  --network testnet \
+  --send no \
+  -- \
+  verify_proof \
+  --public_inputs-file-path "$POSITION_MOVEMENT/target/public_inputs" \
+  --proof_bytes-file-path "$POSITION_MOVEMENT/target/proof" 2>&1)
+SIM_EXIT_C2=$?
+
+if [ $SIM_EXIT_C2 -ne 0 ]; then
+    echo "    ⚠️  Simulation failed (expected for large circuits)"
+    echo ""
+else
+    echo "    ✓ Simulation successful"
+    echo ""
+fi
+
+echo "==> 5d) Attempting proof verification for circuit 2 (expected to fail)"
 echo "    This demonstrates the protocol limitation..."
 
 VERIFY_OUTPUT_C2=$(stellar contract invoke \
@@ -285,6 +356,7 @@ VERIFY_OUTPUT_C2=$(stellar contract invoke \
   --public_inputs-file-path "$POSITION_MOVEMENT/target/public_inputs" \
   --proof_bytes-file-path "$POSITION_MOVEMENT/target/proof" 2>&1)
 VERIFY_EXIT_C2=$?
+set -e
 
 if [ $VERIFY_EXIT_C2 -eq 0 ]; then
     # Extract transaction hash
@@ -301,7 +373,21 @@ if [ $VERIFY_EXIT_C2 -eq 0 ]; then
 else
     echo ""
     echo "═══════════════════════════════════════"
-    echo "❌ Circuit 2 verification failed as expected: Budget ExceededLimit"
+    echo "❌ Circuit 2 verification failed (expected)"
+    echo "═══════════════════════════════════════"
+    
+    # Show error type
+    if echo "$VERIFY_OUTPUT_C2" | grep -q "TxSorobanInvalid"; then
+        echo "Error: TxSorobanInvalid - Transaction rejected during validation"
+    elif echo "$VERIFY_OUTPUT_C2" | grep -q "ExceededLimit"; then
+        echo "Error: ExceededLimit - Protocol CPU/memory budget exceeded"
+    fi
+    
+    echo "Proof size: $PROOF_SIZE_C2 bytes"
+    echo "Public inputs: $PUB_INPUT_SIZE_C2 bytes"
+    echo ""
+    echo "This demonstrates Stellar's current protocol limits for"
+    echo "computationally expensive ZK proof verification."
     echo "═══════════════════════════════════════"
 fi
 

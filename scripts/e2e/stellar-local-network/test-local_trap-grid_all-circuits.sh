@@ -187,10 +187,25 @@ b = pathlib.Path("target/public_inputs").read_bytes()
 print("  Total length:", len(b), "bytes")
 PY
 
-echo "==> 3) cd $CONTRACT_DIR"
-cd "$CONTRACT_DIR"
+# ============================================================================
+# BUILD CONTRACTS AND SETUP LOCAL NETWORK
+# ============================================================================
+echo ""
+echo "════════════════════════════════════════════════════════════"
+echo "BUILD CONTRACTS & SETUP LOCAL NETWORK"
+echo "════════════════════════════════════════════════════════════"
 
-echo "==> 3a) Check Docker availability"
+echo "==> 3a) Build circuit 1 contract"
+cd "$TRAP_MERKLE_ROOT/rs-soroban-ultrahonk"
+stellar contract build --optimize
+echo "    ✓ Circuit 1 contract built"
+
+echo "==> 3b) Build circuit 2 contract"
+cd "$POSITION_MOVEMENT/rs-soroban-ultrahonk"
+stellar contract build --optimize
+echo "    ✓ Circuit 2 contract built"
+
+echo "==> 3c) Check Docker availability"
 if ! docker info > /dev/null 2>&1; then
     echo ""
     echo "════════════════════════════════════════════════════════════"
@@ -206,7 +221,7 @@ if ! docker info > /dev/null 2>&1; then
 fi
 echo "    ✓ Docker is running"
 
-echo "==> 3b) Check if Stellar container is already running"
+echo "==> 3d) Check if Stellar container is already running"
 if docker ps | grep -q "stellar/quickstart"; then
     echo "    ✓ Stellar container already running"
 else
@@ -222,7 +237,7 @@ else
     sleep 3
 fi
 
-echo "==> 3c) Check local Stellar network availability"
+echo "==> 3e) Check local Stellar network availability"
 RETRY_COUNT=0
 MAX_RETRIES=10
 while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
@@ -255,7 +270,7 @@ while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
     fi
 done
 
-echo "==> 3d) Setup source account"
+echo "==> 3f) Setup source account"
 # Use 'alice' as default source account for local network
 SOURCE_ACCOUNT="${STELLAR_SOURCE_ACCOUNT:-alice}"
 echo "    Using source account: $SOURCE_ACCOUNT"
@@ -312,9 +327,7 @@ echo "════════════════════════�
 echo "DEPLOY CIRCUIT 1: trap-merkle-root"
 echo "═══════════════════════════════════════════════════════════="
 
-echo "==> 3e) Build circuit 1 contract"
 cd "$TRAP_MERKLE_ROOT/rs-soroban-ultrahonk"
-stellar contract build --optimize
 
 CID_MERKLE="$(
   stellar contract deploy \
@@ -365,9 +378,9 @@ echo ""
 echo "════════════════════════════════════════════════════════════"
 echo "DEPLOY CIRCUIT 2: position-movement"
 echo "════════════════════════════════════════════════════════════"
-echo "==> 4e) Build circuit 2 contract"
+
 cd "$POSITION_MOVEMENT/rs-soroban-ultrahonk"
-stellar contract build --optimize
+
 CID_MOVEMENT="$(
   stellar contract deploy \
     --wasm target/wasm32v1-none/release/rs_soroban_ultrahonk.wasm \
