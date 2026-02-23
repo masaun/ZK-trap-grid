@@ -1,5 +1,0 @@
-[package]
-name = "secret_word_puzzle"
-type = "bin"
-authors = ["James Bachini"]
-compiler_version = ">=1.0.0"

@@ -1,0 +1,26 @@
+# Sample test data - replace with actual game data
+# For a valid proof, you need to generate proper Merkle proof data
+# This is placeholder data that will need to be replaced with real values
+
+[public_inputs]
+# Trap commitment (computed as poseidon_hash_2([trap_value, secret]))
+# This should match the commitment computed from the private inputs
+# For trap_value=1, secret=12345: 0x27cb78d0541f3912c8645bd60acbe7a7205225e0e6f55a17f4843ac719e3eafe
+trap_commitment = "0x27cb78d0541f3912c8645bd60acbe7a7205225e0e6f55a17f4843ac719e3eafe"
+
+# Move coordinates (x, y) - must be in range [0, 7] for 8x8 grid
+move_x = "2"
+move_y = "3"
+
+# Claimed result: 1 for hit, 0 for miss
+is_hit = "1"
+
+[private_inputs]
+# Actual trap value at (move_x, move_y): 0 for no trap, 1 for trap
+# Must match is_hit for the proof to verify
+trap_value = "1"
+
+# Secret value used in the commitment to prevent preimage attacks
+secret = "12345"
+
+
