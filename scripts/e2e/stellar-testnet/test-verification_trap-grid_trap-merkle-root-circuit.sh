@@ -116,7 +116,9 @@ if [ -z "$SOURCE_ACCOUNT" ]; then
 fi
 echo "    Using source account: $SOURCE_ACCOUNT"
 
-echo "==> 2b) Build contract"
+echo "==> 2b) Build contract (resetting CARGO_TARGET_DIR)"
+# Unset CARGO_TARGET_DIR so contract builds in standard location
+unset CARGO_TARGET_DIR
 stellar contract build --optimize
 
 # ============================================================================

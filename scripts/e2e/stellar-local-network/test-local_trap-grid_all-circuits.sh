@@ -32,8 +32,7 @@ PROJECT_ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 TRAP_MERKLE_ROOT="$PROJECT_ROOT/circuits/trap-merkle-root"
 POSITION_MOVEMENT="$PROJECT_ROOT/circuits/position-movement"
-# Note: rs-soroban-ultrahonk is inside each circuit directory
-CONTRACT_DIR="$TRAP_MERKLE_ROOT/rs-soroban-ultrahonk"
+# Note: Each circuit has its own rs-soroban-ultrahonk directory
 
 # Load environment variables from .env file in scripts directory (optional for local)
 if [ -f "$SCRIPT_DIR/../../.env" ]; then
@@ -41,10 +40,10 @@ if [ -f "$SCRIPT_DIR/../../.env" ]; then
 fi
 
 echo "==> 0) Clean artifacts"
-rm -rf "$TRAP_MERKLE_ROOT/target"
-rm -rf "$POSITION_MOVEMENT/target"
-rm -rf "$TRAP_MERKLE_ROOT/rs-soroban-ultrahonk/target"
-rm -rf "$POSITION_MOVEMENT/rs-soroban-ultrahonk/target"
+rm -rf "$TRAP_MERKLE_ROOT/target" 2>/dev/null || true
+rm -rf "$POSITION_MOVEMENT/target" 2>/dev/null || true
+rm -rf "$TRAP_MERKLE_ROOT/rs-soroban-ultrahonk/target" 2>/dev/null || true
+rm -rf "$POSITION_MOVEMENT/rs-soroban-ultrahonk/target" 2>/dev/null || true
 
 # ============================================================================
 # CIRCUIT 1: trap-merkle-root
@@ -68,7 +67,7 @@ echo "==> 1d) Generate witness (requires valid Prover.toml data)"
 nargo execute 2>&1 | grep -v "warning:" || true
 
 # Check if we have a real witness file before proceeding
-if [ -s target/trap_grid_merkle_root.gz ]; then
+if [ -s target/trap_merkle_root.gz ]; then
     echo "    ✓ Circuit 1 witness generated successfully"
 else
     echo ""
@@ -87,12 +86,12 @@ echo "==> 1e) Generate UltraHonk (keccak) VK + proof"
 BBJS="./node_modules/@aztec/bb.js/dest/node/main.js"
 
 node "$BBJS" write_vk_ultra_keccak_honk \
-  -b ./target/trap_grid_merkle_root.json \
+  -b ./target/trap_merkle_root.json \
   -o ./target/vk.keccak
 
 node "$BBJS" prove_ultra_keccak_honk \
-  -b ./target/trap_grid_merkle_root.json \
-  -w ./target/trap_grid_merkle_root.gz \
+  -b ./target/trap_merkle_root.json \
+  -w ./target/trap_merkle_root.gz \
   -o ./target/proof.with_public_inputs
 
 echo "==> 1f) Extract public_inputs and proof"
@@ -305,16 +304,17 @@ else
     exit 1
 fi
 
-echo "==> 3e) Build contract"
-stellar contract build --optimize
-
 # ============================================================================
 # DEPLOY AND VERIFY CIRCUIT 1: trap-merkle-root
 # ============================================================================
 echo ""
-echo "════════════════════════════════════════════════════════════"
+echo "═══════════════════════════════════════════════════════════="
 echo "DEPLOY CIRCUIT 1: trap-merkle-root"
-echo "════════════════════════════════════════════════════════════"
+echo "═══════════════════════════════════════════════════════════="
+
+echo "==> 3e) Build circuit 1 contract"
+cd "$TRAP_MERKLE_ROOT/rs-soroban-ultrahonk"
+stellar contract build --optimize
 
 CID_MERKLE="$(
   stellar contract deploy \
@@ -365,7 +365,9 @@ echo ""
 echo "════════════════════════════════════════════════════════════"
 echo "DEPLOY CIRCUIT 2: position-movement"
 echo "════════════════════════════════════════════════════════════"
-
+echo "==> 4e) Build circuit 2 contract"
+cd "$POSITION_MOVEMENT/rs-soroban-ultrahonk"
+stellar contract build --optimize
 CID_MOVEMENT="$(
   stellar contract deploy \
     --wasm target/wasm32v1-none/release/rs_soroban_ultrahonk.wasm \
