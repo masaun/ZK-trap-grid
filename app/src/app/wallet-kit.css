@@ -1,0 +1,225 @@
+/* Stellar Wallet Kit Modal Styles */
+
+/* Overlay */
+.swk-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+/* Modal Container */
+.swk-modal-container {
+  background-color: white;
+  border-radius: 12px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .swk-modal-container {
+    background-color: #1f2937;
+    color: #f3f4f6;
+  }
+}
+
+/* Modal Header */
+.swk-modal-header {
+  padding: 24px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+@media (prefers-color-scheme: dark) {
+  .swk-modal-header {
+    border-bottom-color: #374151;
+  }
+}
+
+.swk-modal-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+/* Modal Body */
+.swk-modal-body {
+  padding: 24px;
+}
+
+/* Wallet Options */
+.swk-wallet-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.swk-wallet-button {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  background-color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+}
+
+@media (prefers-color-scheme: dark) {
+  .swk-wallet-button {
+    background-color: #374151;
+    border-color: #4b5563;
+  }
+}
+
+.swk-wallet-button:hover {
+  border-color: #3b82f6;
+  background-color: #eff6ff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+@media (prefers-color-scheme: dark) {
+  .swk-wallet-button:hover {
+    background-color: #4b5563;
+    border-color: #60a5fa;
+  }
+}
+
+.swk-wallet-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.swk-wallet-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.swk-wallet-info {
+  flex: 1;
+  text-align: left;
+}
+
+.swk-wallet-name {
+  font-weight: 600;
+  font-size: 1.125rem;
+  margin: 0;
+  color: #111827;
+}
+
+@media (prefers-color-scheme: dark) {
+  .swk-wallet-name {
+    color: #f3f4f6;
+  }
+}
+
+.swk-wallet-description {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 4px 0 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  .swk-wallet-description {
+    color: #9ca3af;
+  }
+}
+
+/* Close Button */
+.swk-modal-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #6b7280;
+  padding: 4px 8px;
+  transition: color 0.2s;
+}
+
+.swk-modal-close:hover {
+  color: #111827;
+}
+
+@media (prefers-color-scheme: dark) {
+  .swk-modal-close {
+    color: #9ca3af;
+  }
+  
+  .swk-modal-close:hover {
+    color: #f3f4f6;
+  }
+}
+
+/* Install Wallet Link */
+.swk-install-link {
+  display: block;
+  text-align: center;
+  margin-top: 16px;
+  padding: 12px;
+  color: #3b82f6;
+  text-decoration: none;
+  font-size: 0.875rem;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+.swk-install-link:hover {
+  background-color: #eff6ff;
+}
+
+@media (prefers-color-scheme: dark) {
+  .swk-install-link {
+    color: #60a5fa;
+  }
+  
+  .swk-install-link:hover {
+    background-color: #1e3a8a;
+  }
+}
+
+/* Loading State */
+.swk-loading {
+  text-align: center;
+  padding: 40px;
+}
+
+.swk-spinner {
+  border: 3px solid #e5e7eb;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 16px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .swk-spinner {
+    border-color: #374151;
+    border-top-color: #60a5fa;
+  }
+}

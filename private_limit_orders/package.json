@@ -1,6 +1,0 @@
-{
-  "devDependencies": {
-    "@aztec/bb.js": "^0.87.0",
-    "source-map-support": "^0.5.21"
-  }
-}

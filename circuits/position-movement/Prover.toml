@@ -1,0 +1,20 @@
+# Sample test data for the simplified position-movement circuit
+# The circuit verifies that:
+# 1. Move coordinates are within grid bounds (0-7 for 8x8 grid)
+# 2. trap_value is boolean (0 or 1)
+# 3. trap_value matches is_hit (claimed result)
+
+[public_inputs]
+# Move coordinates (x, y) - must be in range [0, 7] for 8x8 grid
+move_x = "2"
+move_y = "3"
+
+# Claimed result: 1 for hit, 0 for miss
+is_hit = "1"
+
+[private_inputs]
+# Actual trap value at (move_x, move_y): 0 for no trap, 1 for trap
+# Must match is_hit for the proof to verify
+trap_value = "1"
+
+
