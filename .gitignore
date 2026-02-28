@@ -1,5 +1,9 @@
 # Node modules
+node_modules/
 **-lock.json
+**.lock
+**.lockb
+
 
 # Environment files
 .env
